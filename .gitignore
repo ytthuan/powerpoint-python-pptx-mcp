@@ -54,7 +54,7 @@ cover/
 # Translations
 *.mo
 *.pot
-
+.cursor/plans/* 
 # Django stuff:
 *.log
 local_settings.py
@@ -179,3 +179,7 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+/deck/*
+/notes/*
+/references/*
+.cursor/plans/*
