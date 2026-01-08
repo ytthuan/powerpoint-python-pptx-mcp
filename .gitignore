@@ -179,12 +179,14 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
-/deck/*
-/notes/*
-/references/*
+
 .cursor/plans/*
 
 # Large PPTX files and generated content
 src/deck/
+src/references/
+src/notes/
+
+
 *.pptx
 *.PPTX
