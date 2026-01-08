@@ -183,3 +183,8 @@ cython_debug/
 /notes/*
 /references/*
 .cursor/plans/*
+
+# Large PPTX files and generated content
+src/deck/
+*.pptx
+*.PPTX
