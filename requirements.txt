@@ -1,0 +1,8 @@
+python-pptx>=1.0.0
+openai
+lxml>=4.9.0
+azure-identity
+azure-ai-projects>=2.0.0b1
+python-dotenv
+mcp>=v1.25.0
+Pillow>=10.0.0

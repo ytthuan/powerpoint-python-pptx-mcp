@@ -1,0 +1,11 @@
+{
+  "name": "pptx-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for PowerPoint PPTX file manipulation",
+  "capabilities": {
+    "tools": true,
+    "resources": true
+  }
+}
+
+
