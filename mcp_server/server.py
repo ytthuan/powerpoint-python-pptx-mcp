@@ -35,6 +35,9 @@ from .tools.notes_tools import (
     handle_read_notes,
     handle_update_notes,
     handle_format_notes_structure,
+    handle_read_notes_batch,
+    handle_update_notes_batch,
+    handle_process_notes_workflow,
 )
 from .resources.pptx_resources import list_pptx_resources, get_pptx_resource
 
@@ -99,10 +102,16 @@ async def call_tool(name: str, arguments: dict) -> dict:
         # Notes tools
         elif name == "read_notes":
             return await handle_read_notes(arguments)
+        elif name == "read_notes_batch":
+            return await handle_read_notes_batch(arguments)
         elif name == "update_notes":
             return await handle_update_notes(arguments)
+        elif name == "update_notes_batch":
+            return await handle_update_notes_batch(arguments)
         elif name == "format_notes_structure":
             return await handle_format_notes_structure(arguments)
+        elif name == "process_notes_workflow":
+            return await handle_process_notes_workflow(arguments)
         
         else:
             raise ValueError(f"Unknown tool: {name}")
