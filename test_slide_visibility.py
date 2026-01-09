@@ -22,9 +22,8 @@ def test_is_slide_hidden():
     prs.slides.add_slide(prs.slide_layouts[1])  # Slide 2
     prs.slides.add_slide(prs.slide_layouts[0])  # Slide 3
     
-    # Hide slide 2
-    sldIdLst = prs.slides._sldIdLst
-    sldIdLst[1].set('show', '0')
+    # Hide slide 2 - set show attribute on the slide element, not sldId
+    prs.slides[1].element.set('show', '0')
     
     # Save to temp file
     temp_file = create_temp_pptx()
@@ -106,9 +105,8 @@ def test_get_slides_metadata():
     slide2.shapes.title.text = "Title 2"
     slide3.shapes.title.text = "Title 3"
     
-    # Hide slide 2
-    sldIdLst = prs.slides._sldIdLst
-    sldIdLst[1].set('show', '0')
+    # Hide slide 2 - set show attribute on the slide element, not sldId
+    prs.slides[1].element.set('show', '0')
     
     # Save to temp file
     temp_file = create_temp_pptx()
@@ -145,9 +143,8 @@ def test_get_slide_content_includes_hidden():
     slide1 = prs.slides.add_slide(prs.slide_layouts[0])
     slide1.shapes.title.text = "Test Slide"
     
-    # Hide the slide
-    sldIdLst = prs.slides._sldIdLst
-    sldIdLst[0].set('show', '0')
+    # Hide the slide - set show attribute on the slide element, not sldId
+    prs.slides[0].element.set('show', '0')
     
     # Save to temp file
     temp_file = create_temp_pptx()
@@ -175,10 +172,9 @@ def test_get_presentation_info_includes_visibility_stats():
     prs.slides.add_slide(prs.slide_layouts[0])
     prs.slides.add_slide(prs.slide_layouts[1])
     
-    # Hide slides 2 and 3
-    sldIdLst = prs.slides._sldIdLst
-    sldIdLst[1].set('show', '0')
-    sldIdLst[2].set('show', '0')
+    # Hide slides 2 and 3 - set show attribute on the slide elements, not sldId
+    prs.slides[1].element.set('show', '0')
+    prs.slides[2].element.set('show', '0')
     
     # Save to temp file
     temp_file = create_temp_pptx()

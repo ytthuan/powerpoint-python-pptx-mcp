@@ -23,6 +23,8 @@ from .tools.edit_tools import (
     handle_replace_slide_image,
     handle_add_text_box,
     handle_add_image,
+    handle_replace_slide_content,
+    handle_update_slide_content,
 )
 from .tools.slide_tools import (
     get_slide_tools,
@@ -97,6 +99,10 @@ async def call_tool(name: str, arguments: dict) -> dict:
             return await handle_add_text_box(arguments)
         elif name == "add_image":
             return await handle_add_image(arguments)
+        elif name == "replace_slide_content":
+            return await handle_replace_slide_content(arguments)
+        elif name == "update_slide_content":
+            return await handle_update_slide_content(arguments)
         
         # Slide management tools
         elif name == "add_slide":
