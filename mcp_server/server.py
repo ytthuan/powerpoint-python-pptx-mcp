@@ -39,6 +39,10 @@ from .tools.notes_tools import (
     handle_update_notes_batch,
     handle_process_notes_workflow,
 )
+from .tools.text_replace_tools import (
+    get_text_replace_tools,
+    handle_replace_text,
+)
 from .resources.pptx_resources import list_pptx_resources, get_pptx_resource
 
 # Configure logging
@@ -60,6 +64,7 @@ async def list_tools() -> list[Tool]:
     tools.extend(get_edit_tools())
     tools.extend(get_slide_tools())
     tools.extend(get_notes_tools())
+    tools.extend(get_text_replace_tools())
     return tools
 
 
@@ -112,6 +117,10 @@ async def call_tool(name: str, arguments: dict) -> dict:
             return await handle_format_notes_structure(arguments)
         elif name == "process_notes_workflow":
             return await handle_process_notes_workflow(arguments)
+        
+        # Text replacement tools
+        elif name == "replace_text":
+            return await handle_replace_text(arguments)
         
         else:
             raise ValueError(f"Unknown tool: {name}")
