@@ -186,6 +186,7 @@ cython_debug/
 src/deck/
 src/references/
 src/notes/
+test_data/
 
 
 *.pptx

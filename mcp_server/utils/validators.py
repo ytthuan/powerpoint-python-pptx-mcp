@@ -1,7 +1,7 @@
 """Input validation utilities for MCP server tools."""
 
 from pathlib import Path
-from typing import Any
+from typing import Any, List
 
 
 def validate_pptx_path(pptx_path: str | Path) -> Path:
@@ -60,5 +60,112 @@ def validate_image_path(image_path: str | Path) -> Path:
     if path.suffix.lower() not in valid_extensions:
         raise ValueError(f"Unsupported image format: {path.suffix}. Supported: {valid_extensions}")
     return path
+
+
+def parse_slide_range(slide_range: str) -> List[int]:
+    """Parse slide range string into list of slide numbers.
+    
+    Args:
+        slide_range: Range string like "1-10" or "5-8"
+        
+    Returns:
+        List of slide numbers in the range (inclusive)
+        
+    Raises:
+        ValueError: If range format is invalid
+    """
+    if not slide_range or not isinstance(slide_range, str):
+        raise ValueError(f"Invalid slide range: {slide_range!r}. Expected format: '1-10'")
+    
+    parts = slide_range.split("-")
+    if len(parts) != 2:
+        raise ValueError(f"Invalid slide range format: {slide_range!r}. Expected format: '1-10'")
+    
+    try:
+        start = int(parts[0].strip())
+        end = int(parts[1].strip())
+    except ValueError as e:
+        raise ValueError(f"Invalid slide range numbers: {slide_range!r}. Both values must be integers.") from e
+    
+    if start < 1:
+        raise ValueError(f"Slide range start must be >= 1, got {start}")
+    if end < start:
+        raise ValueError(f"Slide range end ({end}) must be >= start ({start})")
+    
+    return list(range(start, end + 1))
+
+
+def validate_slide_numbers(slide_numbers: List[int], max_slides: int) -> List[int]:
+    """Validate list of slide numbers are within valid range.
+    
+    Args:
+        slide_numbers: List of slide numbers to validate
+        max_slides: Maximum number of slides in presentation
+        
+    Returns:
+        Validated list of slide numbers
+        
+    Raises:
+        ValueError: If any slide number is invalid
+    """
+    if not slide_numbers:
+        raise ValueError("Slide numbers list cannot be empty")
+    
+    if not isinstance(slide_numbers, list):
+        raise ValueError(f"Slide numbers must be a list, got {type(slide_numbers).__name__}")
+    
+    validated = []
+    for slide_num in slide_numbers:
+        if not isinstance(slide_num, int):
+            raise ValueError(f"All slide numbers must be integers, got {type(slide_num).__name__}: {slide_num!r}")
+        validate_slide_number(slide_num, max_slides)
+        validated.append(slide_num)
+    
+    return validated
+
+
+def validate_batch_updates(updates: List[dict], max_slides: int) -> List[dict]:
+    """Validate batch update structure.
+    
+    Args:
+        updates: List of update dictionaries with slide_number and notes_text
+        max_slides: Maximum number of slides in presentation
+        
+    Returns:
+        Validated list of updates
+        
+    Raises:
+        ValueError: If update structure is invalid
+    """
+    if not updates:
+        raise ValueError("Updates list cannot be empty")
+    
+    if not isinstance(updates, list):
+        raise ValueError(f"Updates must be a list, got {type(updates).__name__}")
+    
+    validated = []
+    for i, update in enumerate(updates):
+        if not isinstance(update, dict):
+            raise ValueError(f"Update at index {i} must be a dictionary, got {type(update).__name__}")
+        
+        if "slide_number" not in update:
+            raise ValueError(f"Update at index {i} missing required field 'slide_number'")
+        
+        if "notes_text" not in update:
+            raise ValueError(f"Update at index {i} missing required field 'notes_text'")
+        
+        slide_num = update["slide_number"]
+        notes_text = update["notes_text"]
+        
+        if not isinstance(slide_num, int):
+            raise ValueError(f"Update at index {i}: slide_number must be integer, got {type(slide_num).__name__}")
+        
+        if not isinstance(notes_text, str):
+            raise ValueError(f"Update at index {i}: notes_text must be string, got {type(notes_text).__name__}")
+        
+        validate_slide_number(slide_num, max_slides)
+        validated.append(update)
+    
+    return validated
 
 

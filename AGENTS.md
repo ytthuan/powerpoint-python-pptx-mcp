@@ -209,8 +209,18 @@ The MCP server follows a **separation of concerns** approach:
 
 #### Notes Tools
 - `read_notes`: Read speaker notes from slide(s)
+- `read_notes_batch`: **NEW** - Read speaker notes from multiple slides at once (efficient batch operation)
 - `update_notes`: Update speaker notes using safe zip-based editing (preserves animations/transitions)
+- `update_notes_batch`: **NEW** - Update notes for multiple slides atomically (all succeed or all fail)
 - `format_notes_structure`: Format notes text into structured format (short/original template)
+- `process_notes_workflow`: **NEW** - Complete workflow: validate, format, and apply pre-processed notes to multiple slides atomically
+
+**Batch Operation Benefits:**
+- Faster execution (fewer round-trips between agent and server)
+- Atomic updates (all succeed or all fail)
+- Built-in validation and error handling
+- Automatic formatting (for `process_notes_workflow`)
+- Recommended for multi-slide operations
 
 ### Resources
 
@@ -277,6 +287,8 @@ Or with Docker:
 
 ### Workflow Example: Notes Processing with AI Agent
 
+#### Single Slide Processing (Legacy Method)
+
 1. **AI Agent calls**: `read_notes(pptx_path, slide_number=1)`
 2. **AI Agent uses its LLM to**:
    - Detect language
@@ -285,6 +297,44 @@ Or with Docker:
    - Generate full version
 3. **AI Agent calls**: `format_notes_structure(short_text, original_text, format_type="short_original")`
 4. **AI Agent calls**: `update_notes(pptx_path, slide_number=1, notes_text=formatted_text, in_place=True)`
+
+#### Batch Processing (RECOMMENDED for Multiple Slides)
+
+**Example: Translate slides 1-20 from English to Vietnamese**
+
+```python
+# 1. Read all notes at once
+notes = read_notes_batch(pptx_path="deck.pptx", slide_range="1-20")
+
+# 2. AI Agent processes with LLM
+notes_data = []
+for slide in notes["slides"]:
+    # LLM detects language, translates, summarizes
+    lang = llm.detect_language(slide["notes"])
+    translated = llm.translate(slide["notes"], target="vietnamese") if lang == "english" else slide["notes"]
+    short = llm.summarize(translated, max_length_percent=40)
+    
+    notes_data.append({
+        "slide_number": slide["slide_number"],
+        "short_text": short,
+        "original_text": translated
+    })
+
+# 3. Apply all changes atomically with automatic formatting
+result = process_notes_workflow(
+    pptx_path="deck.pptx",
+    notes_data=notes_data,
+    in_place=True
+)
+# Result: All 20 slides updated in one atomic operation
+```
+
+**Benefits of Batch Processing:**
+- 🚀 **Faster**: Single read + single write vs 20 reads + 20 writes
+- 🔒 **Atomic**: All updates succeed or all fail (no partial updates)
+- ✅ **Automatic formatting**: `process_notes_workflow` handles formatting
+- 🎯 **Better error handling**: Clear validation and error messages
+- 📊 **Progress tracking**: Know exactly what succeeded/failed
 
 ### Key Features
 
