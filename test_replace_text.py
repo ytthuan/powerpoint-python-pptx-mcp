@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 """Unit tests for replace_text tool."""
 
-import os
 import tempfile
 import traceback
 from pathlib import Path
-import shutil
 
 from pptx import Presentation
-from pptx.util import Inches, Pt
+from pptx.util import Inches
 
 from mcp_server.tools.text_replace_tools import handle_replace_text
 
@@ -219,7 +217,7 @@ async def test_max_replacements():
             "target": "slide_notes",
             "pattern": "hello",
             "replacement": "hi",
-            "use_regex": False,
+            "use_regex": True,
             "regex_flags": ["IGNORECASE"],
             "max_replacements": 1,
             "in_place": True,
@@ -322,6 +320,121 @@ async def test_output_path():
         print("\n✅ Test passed!")
 
 
+async def test_error_invalid_regex():
+    """Test error handling for invalid regex pattern."""
+    print("\n" + "="*60)
+    print("Test: Invalid regex pattern error handling")
+    print("="*60)
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        test_file = Path(tmpdir) / "test.pptx"
+        create_test_pptx(test_file)
+        
+        # Test invalid regex pattern
+        result = await handle_replace_text({
+            "pptx_path": str(test_file),
+            "target": "slide_notes",
+            "pattern": r"([unclosed",  # Invalid regex
+            "replacement": "test",
+            "use_regex": True,
+            "in_place": True,
+        })
+        
+        print(f"Success: {result.get('success')}")
+        print(f"Error: {result.get('error')}")
+        
+        assert result.get('success') == False, "Should fail with invalid regex"
+        assert "error" in result, "Should have error message"
+        assert "Invalid regular expression" in result.get('error', ''), "Should have meaningful error"
+        
+        print("\n✅ Test passed!")
+
+
+async def test_error_invalid_file():
+    """Test error handling for non-existent file."""
+    print("\n" + "="*60)
+    print("Test: Non-existent file error handling")
+    print("="*60)
+    
+    # Test non-existent file
+    result = await handle_replace_text({
+        "pptx_path": "/nonexistent/file.pptx",
+        "target": "slide_notes",
+        "pattern": "test",
+        "replacement": "sample",
+        "use_regex": False,
+        "in_place": True,
+    })
+    
+    print(f"Success: {result.get('success')}")
+    print(f"Error: {result.get('error')}")
+    
+    assert result.get('success') == False, "Should fail with non-existent file"
+    assert "error" in result, "Should have error message"
+    
+    print("\n✅ Test passed!")
+
+
+async def test_error_invalid_slide_number():
+    """Test error handling for invalid slide number."""
+    print("\n" + "="*60)
+    print("Test: Invalid slide number error handling")
+    print("="*60)
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        test_file = Path(tmpdir) / "test.pptx"
+        create_test_pptx(test_file)
+        
+        # Test invalid slide number (file has only 2 slides)
+        result = await handle_replace_text({
+            "pptx_path": str(test_file),
+            "target": "slide_notes",
+            "pattern": "test",
+            "replacement": "sample",
+            "use_regex": False,
+            "slide_number": 999,
+            "in_place": True,
+        })
+        
+        print(f"Success: {result.get('success')}")
+        print(f"Error: {result.get('error')}")
+        
+        assert result.get('success') == False, "Should fail with invalid slide number"
+        assert "error" in result, "Should have error message"
+        
+        print("\n✅ Test passed!")
+
+
+async def test_error_invalid_target():
+    """Test error handling for invalid target value."""
+    print("\n" + "="*60)
+    print("Test: Invalid target value error handling")
+    print("="*60)
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        test_file = Path(tmpdir) / "test.pptx"
+        create_test_pptx(test_file)
+        
+        # Test invalid target
+        result = await handle_replace_text({
+            "pptx_path": str(test_file),
+            "target": "invalid_target",
+            "pattern": "test",
+            "replacement": "sample",
+            "use_regex": False,
+            "in_place": True,
+        })
+        
+        print(f"Success: {result.get('success')}")
+        print(f"Error: {result.get('error')}")
+        
+        assert result.get('success') == False, "Should fail with invalid target"
+        assert "error" in result, "Should have error message"
+        assert "Invalid target" in result.get('error', ''), "Should have meaningful error"
+        
+        print("\n✅ Test passed!")
+
+
 async def run_all_tests():
     """Run all tests."""
     print("\n" + "="*60)
@@ -336,6 +449,10 @@ async def run_all_tests():
         ("Max replacements limit", test_max_replacements),
         ("Specific slide replacement", test_specific_slide),
         ("Output to different file", test_output_path),
+        ("Error: Invalid regex pattern", test_error_invalid_regex),
+        ("Error: Non-existent file", test_error_invalid_file),
+        ("Error: Invalid slide number", test_error_invalid_slide_number),
+        ("Error: Invalid target value", test_error_invalid_target),
     ]
     
     passed = 0

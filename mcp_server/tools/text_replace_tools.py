@@ -1,5 +1,6 @@
 """Tools for text replacement in PPTX files (slide content and notes)."""
 
+import logging
 import os
 import re
 import tempfile
@@ -12,6 +13,8 @@ from pptx import Presentation
 from ..core.pptx_handler import PPTXHandler
 from ..core.safe_editor import update_notes_safe, update_notes_safe_in_place
 from ..utils.validators import validate_pptx_path, validate_slide_number
+
+logger = logging.getLogger(__name__)
 
 
 def get_text_replace_tools() -> list[Tool]:
@@ -99,7 +102,14 @@ def _compile_regex(pattern: str, regex_flags: Optional[List[str]] = None) -> re.
                 flags |= re.MULTILINE
             elif flag_name == "DOTALL":
                 flags |= re.DOTALL
-    return re.compile(pattern, flags)
+    
+    try:
+        return re.compile(pattern, flags)
+    except re.error as exc:
+        # Provide a clear, user-facing error message for invalid regex patterns
+        raise ValueError(
+            f"Invalid regular expression pattern {pattern!r}: {exc}"
+        ) from exc
 
 
 def _replace_in_text(
@@ -124,14 +134,9 @@ def _replace_in_text(
     else:
         # Literal text replacement
         if max_replacements > 0:
-            # Manual counting for limited replacements
-            parts = text.split(pattern)
-            if len(parts) > 1:
-                count = min(len(parts) - 1, max_replacements)
-                new_text = replacement.join(parts[:count + 1]) + pattern.join(parts[count + 1:])
-            else:
-                new_text = text
-                count = 0
+            # Use built-in replace with count for limited replacements
+            new_text = text.replace(pattern, replacement, max_replacements)
+            count = text.count(pattern) - new_text.count(pattern)
         else:
             count = text.count(pattern)
             new_text = text.replace(pattern, replacement)
@@ -290,8 +295,12 @@ def _replace_in_content(
                     })
                     
                     # Update the paragraph text by clearing and setting the first run
+                    # Note: This approach preserves the formatting of the first run but
+                    # loses formatting from other runs if the paragraph had multiple runs
+                    # with different formatting (e.g., bold, italic, colors).
+                    # This is a known limitation for simplicity and performance.
                     if not dry_run:
-                        # Clear all runs and set text in first run to preserve formatting
+                        # Clear all runs and set text in first run
                         for run in paragraph.runs[1:]:
                             run.text = ""
                         if paragraph.runs:
@@ -424,8 +433,10 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
                     if tmp_file.exists():
                         try:
                             tmp_file.unlink()
-                        except Exception:
-                            pass
+                        except Exception as cleanup_error:
+                            logger.warning(
+                                f"Failed to cleanup temporary file {tmp_file}: {cleanup_error}"
+                            )
             else:
                 if output_path:
                     output_path = Path(output_path)
@@ -451,8 +462,26 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
                 "error": f"Invalid target: {target}. Must be 'slide_notes' or 'slide_content'",
             }
     
-    except Exception as e:
+    except ValueError as e:
+        # Validation errors, regex errors, etc.
         return {
             "success": False,
             "error": str(e),
+        }
+    except FileNotFoundError as e:
+        return {
+            "success": False,
+            "error": f"File not found: {e}",
+        }
+    except PermissionError as e:
+        return {
+            "success": False,
+            "error": f"Permission denied: {e}",
+        }
+    except Exception as e:
+        # Log unexpected errors for debugging
+        logger.error(f"Unexpected error in replace_text: {e}", exc_info=True)
+        return {
+            "success": False,
+            "error": f"Unexpected error: {str(e)}",
         }

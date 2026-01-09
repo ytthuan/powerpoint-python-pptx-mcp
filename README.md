@@ -523,9 +523,11 @@ Replace text with regex pattern:
 }
 ```
 
-**Engines**:
-- `zip` (default): Safely edits only notes XML parts, preserves everything else
-- `python-pptx`: Rewrites entire PPTX (use only if needed)
+**Note**: The `replace_text` tool automatically selects the appropriate engine based on the target:
+- For `target: "slide_notes"`: Uses safe zip-based editing to modify only notes XML parts, preserving slide structure, animations, and transitions
+- For `target: "slide_content"`: Uses python-pptx to update text in slide shapes
+
+**Limitation**: When replacing text in slide content with multiple formatted runs (e.g., text with mixed bold/italic/colors), the replacement inherits only the formatting of the first run. The original mixed formatting is not preserved.
 
 ### Note Format
 
