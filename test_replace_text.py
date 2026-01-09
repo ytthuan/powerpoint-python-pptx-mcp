@@ -3,6 +3,7 @@
 
 import os
 import tempfile
+import traceback
 from pathlib import Path
 import shutil
 
@@ -348,7 +349,6 @@ async def run_all_tests():
             failed += 1
             print(f"\n❌ Test failed: {test_name}")
             print(f"Error: {e}")
-            import traceback
             traceback.print_exc()
     
     print("\n" + "="*60)

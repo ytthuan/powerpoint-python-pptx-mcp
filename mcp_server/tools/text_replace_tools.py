@@ -1,8 +1,8 @@
 """Tools for text replacement in PPTX files (slide content and notes)."""
 
+import os
 import re
 import tempfile
-import zipfile
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Optional
 
@@ -10,7 +10,7 @@ from mcp.types import Tool
 from pptx import Presentation
 
 from ..core.pptx_handler import PPTXHandler
-from ..core.safe_editor import update_notes_safe, update_notes_safe_in_place, _notes_part_for_slide
+from ..core.safe_editor import update_notes_safe, update_notes_safe_in_place
 from ..utils.validators import validate_pptx_path, validate_slide_number
 
 
@@ -413,7 +413,6 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
             if in_place:
                 # Save to temp file first, then replace
                 tmp_dir = str(pptx_path.parent)
-                import os
                 fd, tmp_path = tempfile.mkstemp(prefix=pptx_path.stem + ".", suffix=".tmp.pptx", dir=tmp_dir)
                 os.close(fd)
                 tmp_file = Path(tmp_path)
