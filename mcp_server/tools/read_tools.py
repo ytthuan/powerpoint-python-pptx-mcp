@@ -13,7 +13,7 @@ def get_read_tools() -> list[Tool]:
     return [
         Tool(
             name="read_slide_content",
-            description="Read comprehensive content from a slide including text, shapes, and images",
+            description="Read comprehensive content from a slide including text, shapes, images, and visibility status",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -25,6 +25,11 @@ def get_read_tools() -> list[Tool]:
                         "type": "integer",
                         "description": "Slide number (1-indexed). If not provided, returns all slides.",
                         "minimum": 1,
+                    },
+                    "include_hidden": {
+                        "type": "boolean",
+                        "description": "Include hidden slides in results (default: true). Only applicable when slide_number is not specified.",
+                        "default": True,
                     },
                 },
                 "required": ["pptx_path"],
@@ -70,13 +75,32 @@ def get_read_tools() -> list[Tool]:
         ),
         Tool(
             name="read_presentation_info",
-            description="Get presentation metadata including slide count and dimensions",
+            description="Get presentation metadata including slide count, dimensions, and visibility statistics",
             inputSchema={
                 "type": "object",
                 "properties": {
                     "pptx_path": {
                         "type": "string",
                         "description": "Path to the PPTX file",
+                    },
+                },
+                "required": ["pptx_path"],
+            },
+        ),
+        Tool(
+            name="read_slides_metadata",
+            description="Get metadata for all slides including their visibility status (hidden/visible)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "pptx_path": {
+                        "type": "string",
+                        "description": "Path to the PPTX file",
+                    },
+                    "include_hidden": {
+                        "type": "boolean",
+                        "description": "Include hidden slides in results (default: true)",
+                        "default": True,
                     },
                 },
                 "required": ["pptx_path"],
@@ -89,16 +113,28 @@ async def handle_read_slide_content(arguments: Dict[str, Any]) -> Dict[str, Any]
     """Handle read_slide_content tool call."""
     pptx_path = arguments["pptx_path"]
     slide_number = arguments.get("slide_number")
+    include_hidden = arguments.get("include_hidden", True)
     
     handler = PPTXHandler(pptx_path)
     
     if slide_number:
         return handler.get_slide_content(slide_number)
     else:
-        # Return all slides
-        results = []
-        for i in range(1, handler.get_slide_count() + 1):
-            results.append(handler.get_slide_content(i))
+        # Return all slides, optionally filtering hidden ones
+        if include_hidden:
+            # Include all slides without explicit hidden-checks here
+            results = []
+            for i in range(1, handler.get_slide_count() + 1):
+                results.append(handler.get_slide_content(i))
+        else:
+            # Use metadata to determine visible slides and avoid duplicate hidden checks
+            slides_metadata = handler.get_slides_metadata(include_hidden=False)
+            results = []
+            for meta in slides_metadata:
+                slide_num = meta.get("slide_number")
+                if slide_num is None:
+                    continue
+                results.append(handler.get_slide_content(slide_num))
         return {"slides": results}
 
 
@@ -136,4 +172,18 @@ async def handle_read_presentation_info(arguments: Dict[str, Any]) -> Dict[str, 
     handler = PPTXHandler(pptx_path)
     return handler.get_presentation_info()
 
+
+async def handle_read_slides_metadata(arguments: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle read_slides_metadata tool call."""
+    pptx_path = arguments["pptx_path"]
+    include_hidden = arguments.get("include_hidden", True)
+    
+    handler = PPTXHandler(pptx_path)
+    slides = handler.get_slides_metadata(include_hidden=include_hidden)
+    
+    return {
+        "pptx_path": pptx_path,
+        "total_slides": handler.get_slide_count(),
+        "slides": slides,
+    }
 
