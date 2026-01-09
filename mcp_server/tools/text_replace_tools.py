@@ -134,9 +134,9 @@ def _replace_in_text(
     else:
         # Literal text replacement
         if max_replacements > 0:
-            # Use built-in replace with count for limited replacements
+            # Count occurrences before replacement
+            count = min(text.count(pattern), max_replacements)
             new_text = text.replace(pattern, replacement, max_replacements)
-            count = text.count(pattern) - new_text.count(pattern)
         else:
             count = text.count(pattern)
             new_text = text.replace(pattern, replacement)

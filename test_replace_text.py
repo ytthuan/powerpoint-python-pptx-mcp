@@ -202,16 +202,16 @@ async def test_dry_run():
 
 
 async def test_max_replacements():
-    """Test max_replacements parameter."""
+    """Test max_replacements parameter with regex."""
     print("\n" + "="*60)
-    print("Test: Max replacements limit")
+    print("Test: Max replacements limit (regex)")
     print("="*60)
     
     with tempfile.TemporaryDirectory() as tmpdir:
         test_file = Path(tmpdir) / "test.pptx"
         create_test_pptx(test_file)
         
-        # Perform replacement with limit
+        # Perform replacement with limit using regex (case-insensitive)
         result = await handle_replace_text({
             "pptx_path": str(test_file),
             "target": "slide_notes",
@@ -228,6 +228,42 @@ async def test_max_replacements():
         
         # Verify only 1 replacement made
         assert result.get('replacements_count') == 1, f"Expected 1 replacement, got {result.get('replacements_count')}"
+        
+        print("\n✅ Test passed!")
+
+
+async def test_max_replacements_literal():
+    """Test max_replacements parameter with literal text."""
+    print("\n" + "="*60)
+    print("Test: Max replacements limit (literal)")
+    print("="*60)
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        test_file = Path(tmpdir) / "test.pptx"
+        create_test_pptx(test_file)
+        
+        # Perform literal replacement with limit (note has "hello" twice)
+        result = await handle_replace_text({
+            "pptx_path": str(test_file),
+            "target": "slide_notes",
+            "pattern": "hello",
+            "replacement": "hi",
+            "use_regex": False,
+            "max_replacements": 1,
+            "in_place": True,
+        })
+        
+        print(f"Success: {result.get('success')}")
+        print(f"Total replacements: {result.get('replacements_count')}")
+        
+        # Verify only 1 replacement made
+        assert result.get('replacements_count') == 1, f"Expected 1 replacement, got {result.get('replacements_count')}"
+        
+        # Verify one "hello" remains
+        prs = Presentation(str(test_file))
+        notes = prs.slides[0].notes_slide.notes_text_frame.text
+        assert "hi" in notes.lower(), "Should have one replacement"
+        assert "hello" in notes.lower(), "Should still have one 'hello' remaining"
         
         print("\n✅ Test passed!")
 
@@ -446,7 +482,8 @@ async def run_all_tests():
         ("Literal replacement in content", test_replace_in_content_literal),
         ("Regex replacement with capture groups", test_replace_with_regex),
         ("Dry run mode", test_dry_run),
-        ("Max replacements limit", test_max_replacements),
+        ("Max replacements limit (regex)", test_max_replacements),
+        ("Max replacements limit (literal)", test_max_replacements_literal),
         ("Specific slide replacement", test_specific_slide),
         ("Output to different file", test_output_path),
         ("Error: Invalid regex pattern", test_error_invalid_regex),
