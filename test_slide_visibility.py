@@ -8,6 +8,13 @@ from pptx import Presentation
 from mcp_server.core.pptx_handler import PPTXHandler
 
 
+def create_temp_pptx():
+    """Create a temporary PPTX file and return its path."""
+    fd, path = tempfile.mkstemp(suffix='.pptx')
+    os.close(fd)  # Close the file descriptor
+    return path
+
+
 def test_is_slide_hidden():
     """Test reading hidden status of slides."""
     # Create a test presentation
@@ -21,7 +28,7 @@ def test_is_slide_hidden():
     sldIdLst[1].set('show', '0')
     
     # Save to temp file
-    temp_file = tempfile.mktemp(suffix='.pptx')
+    temp_file = create_temp_pptx()
     prs.save(temp_file)
     
     try:
@@ -46,7 +53,7 @@ def test_set_slide_hidden():
     prs.slides.add_slide(prs.slide_layouts[0])  # Slide 3
     
     # Save to temp file
-    temp_file = tempfile.mktemp(suffix='.pptx')
+    temp_file = create_temp_pptx()
     prs.save(temp_file)
     
     try:
@@ -73,7 +80,7 @@ def test_set_slide_hidden():
         assert handler.is_slide_hidden(3) == True
         
         # Save and reload to verify persistence
-        temp_file2 = tempfile.mktemp(suffix='.pptx')
+        temp_file2 = create_temp_pptx()
         handler.save(temp_file2)
         
         handler2 = PPTXHandler(temp_file2)
@@ -105,7 +112,7 @@ def test_get_slides_metadata():
     sldIdLst[1].set('show', '0')
     
     # Save to temp file
-    temp_file = tempfile.mktemp(suffix='.pptx')
+    temp_file = create_temp_pptx()
     prs.save(temp_file)
     
     try:
@@ -144,7 +151,7 @@ def test_get_slide_content_includes_hidden():
     sldIdLst[0].set('show', '0')
     
     # Save to temp file
-    temp_file = tempfile.mktemp(suffix='.pptx')
+    temp_file = create_temp_pptx()
     prs.save(temp_file)
     
     try:
@@ -175,7 +182,7 @@ def test_get_presentation_info_includes_visibility_stats():
     sldIdLst[2].set('show', '0')
     
     # Save to temp file
-    temp_file = tempfile.mktemp(suffix='.pptx')
+    temp_file = create_temp_pptx()
     prs.save(temp_file)
     
     try:

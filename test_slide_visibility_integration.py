@@ -14,6 +14,13 @@ from mcp_server.tools.read_tools import (
 from mcp_server.tools.slide_tools import handle_set_slide_visibility
 
 
+def create_temp_pptx():
+    """Create a temporary PPTX file and return its path."""
+    fd, path = tempfile.mkstemp(suffix='.pptx')
+    os.close(fd)  # Close the file descriptor
+    return path
+
+
 async def test_read_slides_metadata_tool():
     """Test read_slides_metadata MCP tool."""
     # Create a test presentation
@@ -30,7 +37,7 @@ async def test_read_slides_metadata_tool():
     sldIdLst = prs.slides._sldIdLst
     sldIdLst[1].set('show', '0')
     
-    temp_file = tempfile.mktemp(suffix='.pptx')
+    temp_file = create_temp_pptx()
     prs.save(temp_file)
     
     try:
@@ -79,7 +86,7 @@ async def test_read_slide_content_with_hidden():
     sldIdLst = prs.slides._sldIdLst
     sldIdLst[1].set('show', '0')
     
-    temp_file = tempfile.mktemp(suffix='.pptx')
+    temp_file = create_temp_pptx()
     prs.save(temp_file)
     
     try:
@@ -142,7 +149,7 @@ async def test_read_presentation_info_with_visibility():
     sldIdLst[2].set('show', '0')
     sldIdLst[4].set('show', '0')
     
-    temp_file = tempfile.mktemp(suffix='.pptx')
+    temp_file = create_temp_pptx()
     prs.save(temp_file)
     
     try:
@@ -168,7 +175,7 @@ async def test_set_slide_visibility_tool():
     prs.slides.add_slide(prs.slide_layouts[0])
     prs.slides.add_slide(prs.slide_layouts[1])
     
-    temp_file = tempfile.mktemp(suffix='.pptx')
+    temp_file = create_temp_pptx()
     prs.save(temp_file)
     
     try:

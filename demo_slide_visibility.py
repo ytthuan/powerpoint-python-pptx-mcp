@@ -35,12 +35,13 @@ def demo_slide_visibility():
     sldIdLst[3].set('show', '0')  # Slide 4
     
     # Save to temp file
-    temp_file = tempfile.mktemp(suffix='.pptx')
-    prs.save(temp_file)
-    print(f"   Saved to: {temp_file}")
+    with tempfile.NamedTemporaryFile(suffix='.pptx', delete=False) as temp_file:
+        temp_path = temp_file.name
+    prs.save(temp_path)
+    print(f"   Saved to: {temp_path}")
     
     # Create handler
-    handler = PPTXHandler(temp_file)
+    handler = PPTXHandler(temp_path)
     
     # 2. Read presentation info
     print("\n2. Reading presentation info:")
@@ -93,21 +94,22 @@ def demo_slide_visibility():
     
     # 9. Save changes
     print("\n9. Saving changes...")
-    output_file = tempfile.mktemp(suffix='_updated.pptx')
-    handler.save(output_file)
-    print(f"   Saved updated presentation to: {output_file}")
+    with tempfile.NamedTemporaryFile(suffix='_updated.pptx', delete=False) as output_file:
+        output_path = output_file.name
+    handler.save(output_path)
+    print(f"   Saved updated presentation to: {output_path}")
     
     # 10. Verify persistence
     print("\n10. Verifying persistence after reload:")
-    handler2 = PPTXHandler(output_file)
+    handler2 = PPTXHandler(output_path)
     info2 = handler2.get_presentation_info()
     print(f"    Total slides: {info2['slide_count']}")
     print(f"    Visible slides: {info2['visible_slides']}")
     print(f"    Hidden slides: {info2['hidden_slides']}")
     
     # Clean up
-    os.unlink(temp_file)
-    os.unlink(output_file)
+    os.unlink(temp_path)
+    os.unlink(output_path)
     
     print("\n" + "=" * 60)
     print("Demo completed successfully!")
