@@ -39,6 +39,39 @@ class PPTXHandler:
         """Get total number of slides."""
         return len(self.presentation.slides)
 
+    def is_slide_hidden(self, slide_number: int) -> bool:
+        """Check if a slide is hidden.
+        
+        Args:
+            slide_number: Slide number (1-indexed)
+            
+        Returns:
+            True if slide is hidden, False if visible
+        """
+        validate_slide_number(slide_number, self.get_slide_count())
+        sldIdLst = self.presentation.slides._sldIdLst
+        sldId = sldIdLst[slide_number - 1]
+        # The 'show' attribute defaults to '1' (visible) if not present
+        # '0' means hidden, '1' means visible
+        return sldId.get('show', '1') == '0'
+    
+    def set_slide_hidden(self, slide_number: int, hidden: bool):
+        """Set slide visibility.
+        
+        Args:
+            slide_number: Slide number (1-indexed)
+            hidden: True to hide the slide, False to show it
+        """
+        validate_slide_number(slide_number, self.get_slide_count())
+        sldIdLst = self.presentation.slides._sldIdLst
+        sldId = sldIdLst[slide_number - 1]
+        if hidden:
+            sldId.set('show', '0')
+        else:
+            # Remove the show attribute to restore default (visible)
+            if 'show' in sldId.attrib:
+                del sldId.attrib['show']
+
     def get_presentation_info(self) -> Dict[str, Any]:
         """Get presentation metadata."""
         visible_count = sum(1 for i in range(1, self.get_slide_count() + 1) if not self.is_slide_hidden(i))
@@ -199,39 +232,6 @@ class PPTXHandler:
                         pass
                 slides.append({"slide": idx, "notes": notes_text})
             return {"slides": slides}
-
-    def is_slide_hidden(self, slide_number: int) -> bool:
-        """Check if a slide is hidden.
-        
-        Args:
-            slide_number: Slide number (1-indexed)
-            
-        Returns:
-            True if slide is hidden, False if visible
-        """
-        validate_slide_number(slide_number, self.get_slide_count())
-        sldIdLst = self.presentation.slides._sldIdLst
-        sldId = sldIdLst[slide_number - 1]
-        # The 'show' attribute defaults to '1' (visible) if not present
-        # '0' means hidden, '1' means visible
-        return sldId.get('show', '1') == '0'
-    
-    def set_slide_hidden(self, slide_number: int, hidden: bool):
-        """Set slide visibility.
-        
-        Args:
-            slide_number: Slide number (1-indexed)
-            hidden: True to hide the slide, False to show it
-        """
-        validate_slide_number(slide_number, self.get_slide_count())
-        sldIdLst = self.presentation.slides._sldIdLst
-        sldId = sldIdLst[slide_number - 1]
-        if hidden:
-            sldId.set('show', '0')
-        else:
-            # Remove the show attribute to restore default (visible)
-            if 'show' in sldId.attrib:
-                del sldId.attrib['show']
     
     def get_slides_metadata(self, include_hidden: bool = True) -> List[Dict[str, Any]]:
         """Get metadata for all slides including their visibility status.
@@ -269,4 +269,5 @@ class PPTXHandler:
             self.presentation.save(str(output_path))
         else:
             self.presentation.save(str(self.pptx_path))
+
 
