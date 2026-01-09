@@ -162,6 +162,8 @@ Format notes text into structured format (short/original template). **Does NOT g
 - `slide_numbers` (optional): Array of slide numbers (1-indexed), e.g., `[1, 5, 12, 20]`
 - `slide_range` (optional): Slide range string like `"1-10"` (alternative to `slide_numbers`)
 
+**Important:** Provide either `slide_numbers` OR `slide_range`, not both. If both are provided, an error will be returned.
+
 **Returns:**
 ```json
 {

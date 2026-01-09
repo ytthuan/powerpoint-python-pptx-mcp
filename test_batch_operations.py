@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Unit tests for batch operations in MCP server notes tools."""
 
-import asyncio
 import shutil
 import tempfile
 from pathlib import Path
@@ -206,6 +205,29 @@ class TestBatchOperations:
         assert result["success"] is True
         assert result["total_slides"] == 5
         assert len(result["slides"]) == 5
+    
+    @pytest.mark.asyncio
+    async def test_read_notes_batch_both_parameters_error(self, test_pptx_path):
+        """Test that providing both slide_numbers and slide_range raises an error."""
+        result = await handle_read_notes_batch({
+            "pptx_path": test_pptx_path,
+            "slide_numbers": [1, 2],
+            "slide_range": "3-4",
+        })
+        
+        assert result["success"] is False
+        assert "Cannot specify both" in result["error"]
+    
+    @pytest.mark.asyncio
+    async def test_read_notes_batch_range_exceeds_slides(self, test_pptx_path):
+        """Test that slide range exceeding presentation size is handled."""
+        result = await handle_read_notes_batch({
+            "pptx_path": test_pptx_path,
+            "slide_range": "1-100",
+        })
+        
+        assert result["success"] is False
+        assert "exceeds total slides" in result["error"]
     
     @pytest.mark.asyncio
     async def test_update_notes_batch_in_place(self, temp_pptx_path):

@@ -301,44 +301,68 @@ async def handle_format_notes_structure(arguments: Dict[str, Any]) -> Dict[str, 
 
 async def handle_read_notes_batch(arguments: Dict[str, Any]) -> Dict[str, Any]:
     """Handle read_notes_batch tool call."""
-    pptx_path = validate_pptx_path(arguments["pptx_path"])
-    slide_numbers = arguments.get("slide_numbers")
-    slide_range = arguments.get("slide_range")
-    
-    handler = PPTXHandler(pptx_path)
-    max_slides = handler.get_slide_count()
-    
-    # Determine which slides to read
-    if slide_range:
-        slide_numbers = parse_slide_range(slide_range)
-    elif slide_numbers:
-        slide_numbers = validate_slide_numbers(slide_numbers, max_slides)
-    else:
-        # If neither provided, return all slides
-        slide_numbers = list(range(1, max_slides + 1))
-    
-    # Read notes for all specified slides
-    results = []
-    for slide_num in slide_numbers:
-        notes_text = ""
-        slide = handler.presentation.slides[slide_num - 1]
-        if slide.has_notes_slide:
-            try:
-                notes_text = slide.notes_slide.notes_text_frame.text
-            except Exception:
-                pass
+    try:
+        pptx_path = validate_pptx_path(arguments["pptx_path"])
+        slide_numbers = arguments.get("slide_numbers")
+        slide_range = arguments.get("slide_range")
         
-        results.append({
-            "slide_number": slide_num,
-            "notes": notes_text,
-        })
-    
-    return {
-        "success": True,
-        "pptx_path": str(pptx_path),
-        "total_slides": len(results),
-        "slides": results,
-    }
+        # Validate that only one parameter is provided
+        if slide_range and slide_numbers:
+            raise ValueError("Cannot specify both slide_range and slide_numbers. Please provide only one.")
+        
+        handler = PPTXHandler(pptx_path)
+        max_slides = handler.get_slide_count()
+        
+        # Determine which slides to read
+        if slide_range:
+            slide_numbers = parse_slide_range(slide_range)
+            # Validate parsed range against max_slides
+            slide_numbers = validate_slide_numbers(slide_numbers, max_slides)
+        elif slide_numbers:
+            slide_numbers = validate_slide_numbers(slide_numbers, max_slides)
+        else:
+            # If neither provided, return all slides
+            slide_numbers = list(range(1, max_slides + 1))
+        
+        # Read notes for all specified slides
+        results = []
+        for slide_num in slide_numbers:
+            notes_text = ""
+            slide = handler.presentation.slides[slide_num - 1]
+            if slide.has_notes_slide:
+                try:
+                    notes_text = slide.notes_slide.notes_text_frame.text
+                except Exception:
+                    # If there's an issue reading notes text frame for this slide,
+                    # leave notes_text as empty string and continue
+                    pass
+            
+            results.append({
+                "slide_number": slide_num,
+                "notes": notes_text,
+            })
+        
+        return {
+            "success": True,
+            "pptx_path": str(pptx_path),
+            "total_slides": len(results),
+            "slides": results,
+        }
+    except Exception as e:
+        error_response: Dict[str, Any] = {
+            "success": False,
+            "error": str(e),
+        }
+        # Include context when available
+        if "pptx_path" in locals():
+            error_response["pptx_path"] = str(pptx_path)
+        if "slide_numbers" in locals() and slide_numbers is not None:
+            try:
+                error_response["attempted_slides"] = len(slide_numbers)
+            except TypeError:
+                # slide_numbers might not be a sized iterable; ignore in that case
+                pass
+        return error_response
 
 
 async def handle_update_notes_batch(arguments: Dict[str, Any]) -> Dict[str, Any]:

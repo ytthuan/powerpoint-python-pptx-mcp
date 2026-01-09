@@ -38,7 +38,12 @@ async def demo_read_batch():
     print(f"📊 Total slides read: {result['total_slides']}")
     print("\nNotes preview:")
     for slide in result["slides"]:
-        print(f"  • Slide {slide['slide_number']}: {slide['notes'][:50]}...")
+        notes = slide['notes']
+        if notes:
+            preview = notes[:50] + "..." if len(notes) > 50 else notes
+            print(f"  • Slide {slide['slide_number']}: {preview}")
+        else:
+            print(f"  • Slide {slide['slide_number']}: (no notes)")
 
 
 async def demo_update_batch():
