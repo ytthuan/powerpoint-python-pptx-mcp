@@ -121,11 +121,20 @@ async def handle_read_slide_content(arguments: Dict[str, Any]) -> Dict[str, Any]
         return handler.get_slide_content(slide_number)
     else:
         # Return all slides, optionally filtering hidden ones
-        results = []
-        for i in range(1, handler.get_slide_count() + 1):
-            if not include_hidden and handler.is_slide_hidden(i):
-                continue
-            results.append(handler.get_slide_content(i))
+        if include_hidden:
+            # Include all slides without explicit hidden-checks here
+            results = []
+            for i in range(1, handler.get_slide_count() + 1):
+                results.append(handler.get_slide_content(i))
+        else:
+            # Use metadata to determine visible slides and avoid duplicate hidden checks
+            slides_metadata = handler.get_slides_metadata(include_hidden=False)
+            results = []
+            for meta in slides_metadata:
+                slide_num = meta.get("slide_number")
+                if slide_num is None:
+                    continue
+                results.append(handler.get_slide_content(slide_num))
         return {"slides": results}
 
 

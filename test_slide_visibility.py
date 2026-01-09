@@ -2,7 +2,6 @@
 
 import tempfile
 import os
-from pathlib import Path
 from pptx import Presentation
 
 from mcp_server.core.pptx_handler import PPTXHandler

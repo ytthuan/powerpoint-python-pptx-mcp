@@ -74,13 +74,21 @@ class PPTXHandler:
 
     def get_presentation_info(self) -> Dict[str, Any]:
         """Get presentation metadata."""
-        visible_count = sum(1 for i in range(1, self.get_slide_count() + 1) if not self.is_slide_hidden(i))
-        hidden_count = self.get_slide_count() - visible_count
+        slide_count = self.get_slide_count()
+        sldIdLst = self.presentation.slides._sldIdLst
+        visible_count = 0
+        for idx in range(slide_count):
+            sldId = sldIdLst[idx]
+            # The 'show' attribute defaults to '1' (visible) if not present
+            # '0' means hidden, '1' means visible
+            if sldId.get('show', '1') != '0':
+                visible_count += 1
+        hidden_count = slide_count - visible_count
         
         return {
             "file_path": str(self.pptx_path),
             "file_name": self.pptx_path.name,
-            "slide_count": self.get_slide_count(),
+            "slide_count": slide_count,
             "visible_slides": visible_count,
             "hidden_slides": hidden_count,
             "slide_size": {
@@ -243,18 +251,24 @@ class PPTXHandler:
             List of slide metadata dictionaries
         """
         slides_metadata = []
-        for i in range(1, self.get_slide_count() + 1):
-            is_hidden = self.is_slide_hidden(i)
+        slide_count = self.get_slide_count()
+        sldIdLst = self.presentation.slides._sldIdLst
+        
+        for i in range(slide_count):
+            # Check visibility directly without validation overhead
+            sldId = sldIdLst[i]
+            is_hidden = sldId.get('show', '1') == '0'
+            
             if not include_hidden and is_hidden:
                 continue
             
-            slide = self.presentation.slides[i - 1]
+            slide = self.presentation.slides[i]
             title = ""
             if slide.shapes.title:
                 title = slide.shapes.title.text
             
             slides_metadata.append({
-                "slide_number": i,
+                "slide_number": i + 1,  # Convert to 1-indexed
                 "title": title,
                 "hidden": is_hidden,
                 "slide_id": slide.slide_id,

@@ -3,7 +3,6 @@
 import asyncio
 import tempfile
 import os
-from pathlib import Path
 from pptx import Presentation
 
 from mcp_server.tools.read_tools import (
