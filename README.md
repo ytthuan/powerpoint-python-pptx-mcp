@@ -261,6 +261,15 @@ Once connected, the following tools are available:
 - `update_notes` - Update speaker notes (safe zip-based editing)
 - `format_notes_structure` - Format notes into short/original structure
 
+**Text Replacement Tools**:
+- `replace_text` - Replace text in slide content or speaker notes with optional regex support
+  - Supports both literal text and regex patterns with capture groups
+  - Can target slide notes or slide content (shapes)
+  - Optional dry-run mode to preview changes
+  - Supports regex flags (IGNORECASE, MULTILINE, DOTALL)
+  - Can limit replacements by slide number or shape ID
+  - Safe zip-based editing for notes (preserves animations/transitions)
+
 ### Available MCP Resources
 
 The server automatically discovers PPTX files in:
@@ -336,6 +345,9 @@ Once connected to an MCP client (like Cursor), you can interact with PPTX files 
 - "Add a new slide after slide 10"
 - "List all images in the presentation"
 - "Get all speaker notes from the presentation"
+- "Replace all instances of 'hello' with 'hi' in slide notes"
+- "Use regex to find and replace email addresses in slide content"
+- "Preview changes (dry-run) before replacing text in notes"
 
 The MCP server automatically:
 - Discovers PPTX files in common directories
@@ -429,6 +441,86 @@ python3 scripts/pptx_notes.py apply \
   "path/to/updates.json" \
   --in-place \
   --engine zip
+```
+
+**Engines**:
+- `zip` (default): Safely edits only notes XML parts, preserves everything else
+- `python-pptx`: Rewrites entire PPTX (use only if needed)
+
+#### 4. Text Replacement with replace_text MCP Tool
+
+The `replace_text` tool provides flexible text replacement in both slide content and speaker notes.
+
+**Basic Usage (via MCP client)**:
+
+Replace literal text in speaker notes:
+```python
+# Example through AI agent/MCP client:
+# "Replace 'old text' with 'new text' in all slide notes"
+```
+
+Replace text with regex pattern:
+```python
+# "Use regex to replace 'hello (\w+)' with 'goodbye \1' in slide content"
+```
+
+**Key Features**:
+- **Target Selection**: Choose between `slide_notes` (speaker notes) or `slide_content` (text in shapes)
+- **Regex Support**: Use Python regex patterns with capture groups (e.g., `\1`, `\2`)
+- **Regex Flags**: Support for `IGNORECASE`, `MULTILINE`, `DOTALL`
+- **Scoping**: Optionally limit to specific slides or shapes
+- **Dry Run**: Preview changes before applying them
+- **Safe Editing**: Notes updates use zip-based editing to preserve animations/transitions
+
+**Parameters**:
+- `pptx_path` (required): Path to PPTX file
+- `target` (required): `"slide_notes"` or `"slide_content"`
+- `pattern` (required): Text or regex pattern to find
+- `replacement` (required): Replacement text (can use capture groups with regex)
+- `use_regex`: `true` for regex, `false` for literal text (default: `false`)
+- `regex_flags`: Array of flags like `["IGNORECASE", "MULTILINE"]`
+- `slide_number`: Optional slide number to limit scope
+- `shape_id`: Optional shape ID (only for `slide_content`)
+- `max_replacements`: Limit number of replacements (0 = unlimited)
+- `dry_run`: Preview changes without modifying file (default: `false`)
+- `in_place`: Update file in-place vs create copy (default: `true`)
+- `output_path`: Output path when `in_place` is `false`
+
+**Example Scenarios**:
+
+1. **Replace company name across all notes**:
+   - Pattern: `"ACME Corp"`
+   - Replacement: `"Contoso Ltd"`
+   - Target: `"slide_notes"`
+
+2. **Fix common typos with regex**:
+   - Pattern: `"teh\b"` (regex)
+   - Replacement: `"the"`
+   - Target: `"slide_content"`
+   - Flags: `["IGNORECASE"]`
+
+3. **Update email format with capture groups**:
+   - Pattern: `"([a-z]+)@oldomain.com"` (regex)
+   - Replacement: `"\1@newdomain.com"`
+   - Target: `"slide_content"`
+
+4. **Preview changes before applying**:
+   - Set `dry_run: true` to see what would change
+   - Review `changes` array in response
+   - Run again with `dry_run: false` to apply
+
+**Response Structure**:
+```json
+{
+  "success": true,
+  "target": "slide_notes",
+  "pptx_path": "/path/to/file.pptx",
+  "slides_scanned": 10,
+  "slides_changed": 3,
+  "replacements_count": 5,
+  "affected_slides": [2, 5, 8],
+  "in_place": true
+}
 ```
 
 **Engines**:
