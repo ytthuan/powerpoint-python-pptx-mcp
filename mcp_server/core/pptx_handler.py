@@ -41,10 +41,15 @@ class PPTXHandler:
 
     def get_presentation_info(self) -> Dict[str, Any]:
         """Get presentation metadata."""
+        visible_count = sum(1 for i in range(1, self.get_slide_count() + 1) if not self.is_slide_hidden(i))
+        hidden_count = self.get_slide_count() - visible_count
+        
         return {
             "file_path": str(self.pptx_path),
             "file_name": self.pptx_path.name,
             "slide_count": self.get_slide_count(),
+            "visible_slides": visible_count,
+            "hidden_slides": hidden_count,
             "slide_size": {
                 "width": self.presentation.slide_width,
                 "height": self.presentation.slide_height,
@@ -126,6 +131,7 @@ class PPTXHandler:
             "title": title,
             "text": text,
             "shapes": shapes_info,
+            "hidden": self.is_slide_hidden(slide_number),
         }
 
     def get_slide_images(self, slide_number: int) -> List[Dict[str, Any]]:
@@ -193,6 +199,68 @@ class PPTXHandler:
                         pass
                 slides.append({"slide": idx, "notes": notes_text})
             return {"slides": slides}
+
+    def is_slide_hidden(self, slide_number: int) -> bool:
+        """Check if a slide is hidden.
+        
+        Args:
+            slide_number: Slide number (1-indexed)
+            
+        Returns:
+            True if slide is hidden, False if visible
+        """
+        validate_slide_number(slide_number, self.get_slide_count())
+        sldIdLst = self.presentation.slides._sldIdLst
+        sldId = sldIdLst[slide_number - 1]
+        # The 'show' attribute defaults to '1' (visible) if not present
+        # '0' means hidden, '1' means visible
+        return sldId.get('show', '1') == '0'
+    
+    def set_slide_hidden(self, slide_number: int, hidden: bool):
+        """Set slide visibility.
+        
+        Args:
+            slide_number: Slide number (1-indexed)
+            hidden: True to hide the slide, False to show it
+        """
+        validate_slide_number(slide_number, self.get_slide_count())
+        sldIdLst = self.presentation.slides._sldIdLst
+        sldId = sldIdLst[slide_number - 1]
+        if hidden:
+            sldId.set('show', '0')
+        else:
+            # Remove the show attribute to restore default (visible)
+            if 'show' in sldId.attrib:
+                del sldId.attrib['show']
+    
+    def get_slides_metadata(self, include_hidden: bool = True) -> List[Dict[str, Any]]:
+        """Get metadata for all slides including their visibility status.
+        
+        Args:
+            include_hidden: If False, only return visible slides
+            
+        Returns:
+            List of slide metadata dictionaries
+        """
+        slides_metadata = []
+        for i in range(1, self.get_slide_count() + 1):
+            is_hidden = self.is_slide_hidden(i)
+            if not include_hidden and is_hidden:
+                continue
+            
+            slide = self.presentation.slides[i - 1]
+            title = ""
+            if slide.shapes.title:
+                title = slide.shapes.title.text
+            
+            slides_metadata.append({
+                "slide_number": i,
+                "title": title,
+                "hidden": is_hidden,
+                "slide_id": slide.slide_id,
+            })
+        
+        return slides_metadata
 
     def save(self, output_path: Optional[str | Path] = None):
         """Save presentation to file."""

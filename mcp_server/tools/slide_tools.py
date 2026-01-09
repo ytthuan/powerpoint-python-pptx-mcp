@@ -7,6 +7,7 @@ from mcp.types import Tool
 from pptx import Presentation
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 
+from ..core.pptx_handler import PPTXHandler
 from ..utils.validators import validate_pptx_path, validate_slide_number
 
 
@@ -117,6 +118,33 @@ def get_slide_tools() -> list[Tool]:
                     },
                 },
                 "required": ["pptx_path", "slide_number", "layout_name"],
+            },
+        ),
+        Tool(
+            name="set_slide_visibility",
+            description="Hide or show a slide in the presentation",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "pptx_path": {
+                        "type": "string",
+                        "description": "Path to the PPTX file",
+                    },
+                    "slide_number": {
+                        "type": "integer",
+                        "description": "Slide number (1-indexed)",
+                        "minimum": 1,
+                    },
+                    "hidden": {
+                        "type": "boolean",
+                        "description": "True to hide the slide, False to show it",
+                    },
+                    "output_path": {
+                        "type": "string",
+                        "description": "Output PPTX path (optional)",
+                    },
+                },
+                "required": ["pptx_path", "slide_number", "hidden"],
             },
         ),
     ]
@@ -284,4 +312,32 @@ async def handle_change_slide_layout(arguments: Dict[str, Any]) -> Dict[str, Any
         "layout_name": layout_name,
     }
 
+
+async def handle_set_slide_visibility(arguments: Dict[str, Any]) -> Dict[str, Any]:
+    """Handle set_slide_visibility tool call."""
+    pptx_path = validate_pptx_path(arguments["pptx_path"])
+    slide_number = arguments["slide_number"]
+    hidden = arguments["hidden"]
+    output_path = arguments.get("output_path")
+    
+    handler = PPTXHandler(pptx_path)
+    validate_slide_number(slide_number, handler.get_slide_count())
+    
+    # Set slide visibility
+    handler.set_slide_hidden(slide_number, hidden)
+    
+    # Save
+    if output_path:
+        output_path = Path(output_path)
+    else:
+        output_path = pptx_path.with_name(pptx_path.stem + ".edited.pptx")
+    
+    handler.save(output_path)
+    
+    return {
+        "success": True,
+        "output_path": str(output_path),
+        "slide_number": slide_number,
+        "hidden": hidden,
+    }
 

@@ -15,6 +15,7 @@ from .tools.read_tools import (
     handle_read_slide_text,
     handle_read_slide_images,
     handle_read_presentation_info,
+    handle_read_slides_metadata,
 )
 from .tools.edit_tools import (
     get_edit_tools,
@@ -29,6 +30,7 @@ from .tools.slide_tools import (
     handle_delete_slide,
     handle_duplicate_slide,
     handle_change_slide_layout,
+    handle_set_slide_visibility,
 )
 from .tools.notes_tools import (
     get_notes_tools,
@@ -83,6 +85,8 @@ async def call_tool(name: str, arguments: dict) -> dict:
             return await handle_read_slide_images(arguments)
         elif name == "read_presentation_info":
             return await handle_read_presentation_info(arguments)
+        elif name == "read_slides_metadata":
+            return await handle_read_slides_metadata(arguments)
         
         # Edit tools
         elif name == "update_slide_text":
@@ -103,6 +107,8 @@ async def call_tool(name: str, arguments: dict) -> dict:
             return await handle_duplicate_slide(arguments)
         elif name == "change_slide_layout":
             return await handle_change_slide_layout(arguments)
+        elif name == "set_slide_visibility":
+            return await handle_set_slide_visibility(arguments)
         
         # Notes tools
         elif name == "read_notes":
