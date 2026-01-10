@@ -3,12 +3,12 @@
 import json
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from mcp.types import Tool
 
 from ..core.pptx_handler import PPTXHandler
-from ..core.safe_editor import update_notes_safe_in_place, _iter_updates
+from ..core.safe_editor import update_notes_safe_in_place
 from ..utils.validators import (
     validate_pptx_path,
     validate_slide_number,
@@ -33,7 +33,7 @@ def get_notes_tools() -> list[Tool]:
                     },
                     "slide_number": {
                         "type": "integer",
-                        "description": "Slide number (1-indexed). If not provided, returns all slides.",
+                        "description": "Slide number (1-indexed). If not provided, returns all slides.",  # noqa: E501
                         "minimum": 1,
                     },
                 },
@@ -42,7 +42,7 @@ def get_notes_tools() -> list[Tool]:
         ),
         Tool(
             name="read_notes_batch",
-            description="Read speaker notes from multiple slides at once for efficient batch processing",
+            description="Read speaker notes from multiple slides at once for efficient batch processing",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -60,7 +60,7 @@ def get_notes_tools() -> list[Tool]:
                     },
                     "slide_range": {
                         "type": "string",
-                        "description": "Slide range string like '1-10' (alternative to slide_numbers)",
+                        "description": "Slide range string like '1-10' (alternative to slide_numbers)",  # noqa: E501
                     },
                 },
                 "required": ["pptx_path"],
@@ -68,7 +68,7 @@ def get_notes_tools() -> list[Tool]:
         ),
         Tool(
             name="update_notes",
-            description="Update speaker notes for a slide using safe zip-based editing (preserves animations/transitions)",
+            description="Update speaker notes for a slide using safe zip-based editing (preserves animations/transitions)",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -100,7 +100,7 @@ def get_notes_tools() -> list[Tool]:
         ),
         Tool(
             name="update_notes_batch",
-            description="Update speaker notes for multiple slides atomically using safe zip-based editing. All updates succeed or all fail (atomic operation).",
+            description="Update speaker notes for multiple slides atomically using safe zip-based editing. All updates succeed or all fail (atomic operation).",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -134,7 +134,7 @@ def get_notes_tools() -> list[Tool]:
                     },
                     "output_path": {
                         "type": "string",
-                        "description": "Output PPTX path (optional, only used if in_place is false)",
+                        "description": "Output PPTX path (optional, only used if in_place is false)",  # noqa: E501
                     },
                 },
                 "required": ["pptx_path", "updates"],
@@ -142,7 +142,7 @@ def get_notes_tools() -> list[Tool]:
         ),
         Tool(
             name="format_notes_structure",
-            description="Format notes text into structured format (short/original template). Does NOT generate content, only formats structure.",
+            description="Format notes text into structured format (short/original template). Does NOT generate content, only formats structure.",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -166,7 +166,7 @@ def get_notes_tools() -> list[Tool]:
         ),
         Tool(
             name="process_notes_workflow",
-            description="Orchestrate complete notes processing workflow: validate, format, and apply pre-processed notes to multiple slides atomically. AI agent provides already-processed content.",
+            description="Orchestrate complete notes processing workflow: validate, format, and apply pre-processed notes to multiple slides atomically. AI agent provides already-processed content.",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -176,7 +176,7 @@ def get_notes_tools() -> list[Tool]:
                     },
                     "notes_data": {
                         "type": "array",
-                        "description": "Array of pre-processed notes with slide_number, short_text, and original_text",
+                        "description": "Array of pre-processed notes with slide_number, short_text, and original_text",  # noqa: E501
                         "items": {
                             "type": "object",
                             "properties": {
@@ -204,7 +204,7 @@ def get_notes_tools() -> list[Tool]:
                     },
                     "output_path": {
                         "type": "string",
-                        "description": "Output PPTX path (optional, only used if in_place is false)",
+                        "description": "Output PPTX path (optional, only used if in_place is false)",  # noqa: E501
                     },
                 },
                 "required": ["pptx_path", "notes_data"],

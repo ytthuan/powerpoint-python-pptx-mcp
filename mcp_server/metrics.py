@@ -192,15 +192,12 @@ class NoOpMetricsCollector(IMetricsCollector):
 
     def record_operation(self, operation: str, duration_ms: float, success: bool, **kwargs) -> None:
         """Record an operation metric (no-op)."""
-        pass
 
     def increment_counter(self, metric: str, value: int = 1, **kwargs) -> None:
         """Increment a counter metric (no-op)."""
-        pass
 
     def record_gauge(self, metric: str, value: float, **kwargs) -> None:
         """Record a gauge metric (no-op)."""
-        pass
 
     def get_metrics(self) -> Dict[str, Any]:
         """Get all collected metrics (empty)."""

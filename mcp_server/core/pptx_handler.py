@@ -1,7 +1,5 @@
 """Core PPTX file operations handler."""
 
-import json
-import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -9,8 +7,6 @@ from pptx import Presentation
 from pptx.shapes.base import BaseShape
 from pptx.shapes.group import GroupShape
 from pptx.shapes.picture import Picture
-from pptx.shapes.autoshape import Shape
-from pptx.shapes.freeform import FreeformBuilder
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 
 from ..cache import PresentationCache
@@ -315,7 +311,7 @@ class PPTXHandler:
         """
         slides_metadata = []
         slide_count = self.get_slide_count()
-        sldIdLst = self.presentation.slides._sldIdLst
+        self.presentation.slides._sldIdLst
 
         for i in range(slide_count):
             # Check visibility directly without validation overhead

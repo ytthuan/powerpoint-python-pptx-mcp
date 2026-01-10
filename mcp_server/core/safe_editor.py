@@ -1,6 +1,5 @@
 """Safe XML-based editing for PPTX files to preserve animations and transitions."""
 
-import json
 import os
 import tempfile
 import zipfile
@@ -8,8 +7,6 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 from lxml import etree
-
-from ..utils.validators import validate_pptx_path, validate_slide_number
 
 
 # XML namespaces for PPTX

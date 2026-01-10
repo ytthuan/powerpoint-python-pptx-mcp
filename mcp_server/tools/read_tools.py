@@ -1,11 +1,11 @@
 """Tools for reading PPTX content."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from mcp.types import Tool
 
 from ..core.pptx_handler import PPTXHandler
-from ..core.image_extractor import extract_slide_images, extract_images_from_pptx
+from ..core.image_extractor import extract_slide_images
 
 
 def get_read_tools() -> list[Tool]:
@@ -13,7 +13,7 @@ def get_read_tools() -> list[Tool]:
     return [
         Tool(
             name="read_slide_content",
-            description="Read comprehensive content from a slide including text, shapes, images, and visibility status",
+            description="Read comprehensive content from a slide including text, shapes, images, and visibility status",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -23,12 +23,12 @@ def get_read_tools() -> list[Tool]:
                     },
                     "slide_number": {
                         "type": "integer",
-                        "description": "Slide number (1-indexed). If not provided, returns all slides.",
+                        "description": "Slide number (1-indexed). If not provided, returns all slides.",  # noqa: E501
                         "minimum": 1,
                     },
                     "include_hidden": {
                         "type": "boolean",
-                        "description": "Include hidden slides in results (default: true). Only applicable when slide_number is not specified.",
+                        "description": "Include hidden slides in results (default: true). Only applicable when slide_number is not specified.",  # noqa: E501
                         "default": True,
                     },
                 },
@@ -75,7 +75,7 @@ def get_read_tools() -> list[Tool]:
         ),
         Tool(
             name="read_presentation_info",
-            description="Get presentation metadata including slide count, dimensions, and visibility statistics",
+            description="Get presentation metadata including slide count, dimensions, and visibility statistics",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -89,7 +89,7 @@ def get_read_tools() -> list[Tool]:
         ),
         Tool(
             name="read_slides_metadata",
-            description="Get metadata for all slides including their visibility status (hidden/visible)",
+            description="Get metadata for all slides including their visibility status (hidden/visible)",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {

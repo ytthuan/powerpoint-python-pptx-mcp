@@ -1,6 +1,5 @@
 """PPTX file resources for MCP server."""
 
-import json
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -27,8 +26,8 @@ def list_pptx_resources(base_path: str | Path = ".") -> List[Resource]:
                 Resource(
                     uri=resource_uri,
                     name=pptx_path.name,
-                    description=f"PowerPoint presentation: {info['slide_count']} slides",
-                    mimeType="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                    description=(f"PowerPoint presentation: {info['slide_count']} " "slides"),
+                    mimeType="application/vnd.openxmlformats-officedocument.presentationml.presentation",  # noqa: E501
                 )
             )
         except Exception:

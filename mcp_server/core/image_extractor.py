@@ -44,7 +44,7 @@ def extract_images_from_pptx(
                                 "format": format_name,
                             }
                         )
-                    except Exception as e:
+                    except Exception:
                         # Skip invalid images
                         continue
 

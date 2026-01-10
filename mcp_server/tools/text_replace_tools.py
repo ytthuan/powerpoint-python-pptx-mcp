@@ -22,7 +22,7 @@ def get_text_replace_tools() -> list[Tool]:
     return [
         Tool(
             name="replace_text",
-            description="Replace text in slide content or speaker notes with optional regex support. Supports dry-run mode to preview changes without modifying files.",
+            description="Replace text in slide content or speaker notes with optional regex support. Supports dry-run mode to preview changes without modifying files.",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -33,24 +33,24 @@ def get_text_replace_tools() -> list[Tool]:
                     "target": {
                         "type": "string",
                         "enum": ["slide_notes", "slide_content"],
-                        "description": "Target for replacement: 'slide_notes' (speaker notes) or 'slide_content' (text in slide shapes)",
+                        "description": "Target for replacement: 'slide_notes' (speaker notes) or 'slide_content' (text in slide shapes)",  # noqa: E501
                     },
                     "pattern": {
                         "type": "string",
-                        "description": "Text pattern to find. If use_regex is true, this is a regex pattern; otherwise, literal text.",
+                        "description": "Text pattern to find. If use_regex is true, this is a regex pattern; otherwise, literal text.",  # noqa: E501
                     },
                     "replacement": {
                         "type": "string",
-                        "description": "Replacement text. For regex mode, can use capture groups like \\1, \\2, etc.",
+                        "description": "Replacement text. For regex mode, can use capture groups like \\1, \\2, etc.",  # noqa: E501
                     },
                     "use_regex": {
                         "type": "boolean",
-                        "description": "Enable regex pattern matching (default: false for literal text matching)",
+                        "description": "Enable regex pattern matching (default: false for literal text matching)",  # noqa: E501
                         "default": False,
                     },
                     "regex_flags": {
                         "type": "array",
-                        "description": "Regex flags: 'IGNORECASE', 'MULTILINE', 'DOTALL' (only used if use_regex is true)",
+                        "description": "Regex flags: 'IGNORECASE', 'MULTILINE', 'DOTALL' (only used if use_regex is true)",  # noqa: E501
                         "items": {
                             "type": "string",
                             "enum": ["IGNORECASE", "MULTILINE", "DOTALL"],
@@ -58,31 +58,31 @@ def get_text_replace_tools() -> list[Tool]:
                     },
                     "slide_number": {
                         "type": "integer",
-                        "description": "Specific slide number (1-indexed). If omitted, applies to all slides.",
+                        "description": "Specific slide number (1-indexed). If omitted, applies to all slides.",  # noqa: E501
                         "minimum": 1,
                     },
                     "shape_id": {
                         "type": "integer",
-                        "description": "Specific shape ID (only for slide_content target). If omitted, applies to all shapes.",
+                        "description": "Specific shape ID (only for slide_content target). If omitted, applies to all shapes.",  # noqa: E501
                     },
                     "max_replacements": {
                         "type": "integer",
-                        "description": "Maximum number of replacements to make (0 or omitted = replace all)",
+                        "description": "Maximum number of replacements to make (0 or omitted = replace all)",  # noqa: E501
                         "minimum": 0,
                     },
                     "dry_run": {
                         "type": "boolean",
-                        "description": "Preview changes without modifying the file (default: false)",
+                        "description": "Preview changes without modifying the file (default: false)",  # noqa: E501
                         "default": False,
                     },
                     "in_place": {
                         "type": "boolean",
-                        "description": "Update file in-place. If false, creates a new file (default: true)",
+                        "description": "Update file in-place. If false, creates a new file (default: true)",  # noqa: E501
                         "default": True,
                     },
                     "output_path": {
                         "type": "string",
-                        "description": "Output path for the modified file (only used when in_place is false)",
+                        "description": "Output path for the modified file (only used when in_place is false)",  # noqa: E501
                     },
                 },
                 "required": ["pptx_path", "target", "pattern", "replacement"],

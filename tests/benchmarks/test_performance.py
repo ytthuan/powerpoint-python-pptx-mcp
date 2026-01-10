@@ -94,13 +94,13 @@ def run_performance_report():
     for i in range(1000):
         cache.set(f"key{i}", f"value{i}")
     write_time = time.time() - start
-    print(f"   Write 1000 items: {write_time:.4f}s ({1000/write_time:.0f} ops/sec)")
+    print(f"   Write 1000 items: {write_time:.4f}s ({1000 / write_time:.0f} ops/sec)")
 
     start = time.time()
     for i in range(1000):
         cache.get(f"key{i}")
     read_time = time.time() - start
-    print(f"   Read 1000 items: {read_time:.4f}s ({1000/read_time:.0f} ops/sec)")
+    print(f"   Read 1000 items: {read_time:.4f}s ({1000 / read_time:.0f} ops/sec)")
 
     stats = cache.get_stats()
     print(f"   Hit rate: {stats['hit_rate']:.2%}")
@@ -112,7 +112,7 @@ def run_performance_report():
         reset_config()
         get_config()
     config_time = time.time() - start
-    print(f"   Load config 100 times: {config_time:.4f}s ({100/config_time:.0f} ops/sec)")
+    print(f"   Load config 100 times: {config_time:.4f}s ({100 / config_time:.0f} ops/sec)")
 
     print("\n" + "=" * 70)
     print("✅ Benchmark complete!")

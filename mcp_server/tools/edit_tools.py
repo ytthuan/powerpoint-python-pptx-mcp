@@ -7,9 +7,8 @@ from typing import Any, Dict
 
 from mcp.types import Tool
 from pptx import Presentation
-from pptx.util import Inches, Pt
+from pptx.util import Inches
 
-from ..core.pptx_handler import PPTXHandler
 from ..utils.validators import (
     validate_pptx_path,
     validate_slide_number,
@@ -47,7 +46,7 @@ def get_edit_tools() -> list[Tool]:
                     },
                     "output_path": {
                         "type": "string",
-                        "description": "Output PPTX path (optional, defaults to input path with .edited suffix)",
+                        "description": "Output PPTX path (optional, defaults to input path with .edited suffix)",  # noqa: E501
                     },
                 },
                 "required": ["pptx_path", "slide_number", "shape_id", "new_text"],
@@ -168,7 +167,7 @@ def get_edit_tools() -> list[Tool]:
         ),
         Tool(
             name="replace_slide_content",
-            description="Replace all text content of a slide with new content. Clears existing text shapes and sets new content. Preserves images and non-text shapes unless clear_all is true.",
+            description="Replace all text content of a slide with new content. Clears existing text shapes and sets new content. Preserves images and non-text shapes unless clear_all is true.",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -230,17 +229,17 @@ def get_edit_tools() -> list[Tool]:
                     },
                     "clear_all": {
                         "type": "boolean",
-                        "description": "If true, removes all shapes (including images). If false, only removes text shapes (default: false)",
+                        "description": "If true, removes all shapes (including images). If false, only removes text shapes (default: false)",  # noqa: E501
                         "default": False,
                     },
                     "preserve_layout": {
                         "type": "boolean",
-                        "description": "If true, attempts to preserve existing shape positions when updating text (default: true)",
+                        "description": "If true, attempts to preserve existing shape positions when updating text (default: true)",  # noqa: E501
                         "default": True,
                     },
                     "in_place": {
                         "type": "boolean",
-                        "description": "Update file in-place. If false, creates a new file (default: false)",
+                        "description": "Update file in-place. If false, creates a new file (default: false)",  # noqa: E501
                         "default": False,
                     },
                     "output_path": {
@@ -253,7 +252,7 @@ def get_edit_tools() -> list[Tool]:
         ),
         Tool(
             name="update_slide_content",
-            description="Update specific parts of slide content without replacing everything. Can update title, specific shapes by ID, or add new content.",
+            description="Update specific parts of slide content without replacing everything. Can update title, specific shapes by ID, or add new content.",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -272,7 +271,7 @@ def get_edit_tools() -> list[Tool]:
                         "properties": {
                             "title": {
                                 "type": "string",
-                                "description": "New title text (updates title shape if exists, or creates one if not)",
+                                "description": "New title text (updates title shape if exists, or creates one if not)",  # noqa: E501
                             },
                             "shape_updates": {
                                 "type": "array",
@@ -282,7 +281,7 @@ def get_edit_tools() -> list[Tool]:
                                     "properties": {
                                         "shape_id": {
                                             "type": "integer",
-                                            "description": "Shape ID to update (from read_slide_content)",
+                                            "description": "Shape ID to update (from read_slide_content)",  # noqa: E501
                                         },
                                         "text": {
                                             "type": "string",
@@ -333,7 +332,7 @@ def get_edit_tools() -> list[Tool]:
                     },
                     "in_place": {
                         "type": "boolean",
-                        "description": "Update file in-place. If false, creates a new file (default: false)",
+                        "description": "Update file in-place. If false, creates a new file (default: false)",  # noqa: E501
                         "default": False,
                     },
                     "output_path": {

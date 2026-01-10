@@ -5,7 +5,6 @@ from typing import Any, Dict
 
 from mcp.types import Tool
 from pptx import Presentation
-from pptx.enum.shapes import MSO_SHAPE_TYPE
 
 from ..core.pptx_handler import PPTXHandler
 from ..utils.validators import validate_pptx_path, validate_slide_number
@@ -26,12 +25,12 @@ def get_slide_tools() -> list[Tool]:
                     },
                     "layout_name": {
                         "type": "string",
-                        "description": "Layout name (e.g., 'Title Slide', 'Title and Content', 'Blank')",
+                        "description": "Layout name (e.g., 'Title Slide', 'Title and Content', 'Blank')",  # noqa: E501
                         "default": "Title and Content",
                     },
                     "position": {
                         "type": "integer",
-                        "description": "Position to insert slide (1-indexed). If not provided, adds at the end.",
+                        "description": "Position to insert slide (1-indexed). If not provided, adds at the end.",  # noqa: E501
                         "minimum": 1,
                     },
                     "output_path": {
@@ -82,7 +81,7 @@ def get_slide_tools() -> list[Tool]:
                     },
                     "position": {
                         "type": "integer",
-                        "description": "Position to insert duplicate (1-indexed). If not provided, adds after original.",
+                        "description": "Position to insert duplicate (1-indexed). If not provided, adds after original.",  # noqa: E501
                         "minimum": 1,
                     },
                     "output_path": {
@@ -174,12 +173,12 @@ async def handle_add_slide(arguments: Dict[str, Any]) -> Dict[str, Any]:
     if position:
         validate_slide_number(position, len(pres.slides) + 1)
         # Insert at position (0-indexed)
-        slide = pres.slides.add_slide(layout)
+        pres.slides.add_slide(layout)
         # Move to position (python-pptx doesn't support direct insertion, so we'll add and reorder)
         # For now, just add at the end and note the limitation
         slide_index = len(pres.slides) - 1
     else:
-        slide = pres.slides.add_slide(layout)
+        pres.slides.add_slide(layout)
         slide_index = len(pres.slides) - 1
 
     # Save
@@ -230,7 +229,7 @@ async def handle_duplicate_slide(arguments: Dict[str, Any]) -> Dict[str, Any]:
     """Handle duplicate_slide tool call."""
     pptx_path = validate_pptx_path(arguments["pptx_path"])
     slide_number = arguments["slide_number"]
-    position = arguments.get("position")
+    arguments.get("position")
     output_path = arguments.get("output_path")
 
     pres = Presentation(str(pptx_path))

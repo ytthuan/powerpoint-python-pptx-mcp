@@ -59,8 +59,6 @@ class ValidationError(PPTXError):
     This includes invalid parameters, malformed data, or constraint violations.
     """
 
-    pass
-
 
 class InvalidSlideNumberError(ValidationError):
     """Raised when a slide number is out of valid range."""
@@ -109,8 +107,6 @@ class InputTooLargeError(ValidationError):
 
 class FileOperationError(PPTXError):
     """Base class for file operation errors."""
-
-    pass
 
 
 class PPTXFileNotFoundError(FileOperationError):
@@ -161,8 +157,6 @@ class FileTooLargeError(FileOperationError):
 class PresentationError(PPTXError):
     """Base class for presentation-related errors."""
 
-    pass
-
 
 class SlideNotFoundError(PresentationError):
     """Raised when a requested slide is not found."""
@@ -212,8 +206,6 @@ class NotesNotFoundError(PresentationError):
 class SecurityError(PPTXError):
     """Base class for security-related errors."""
 
-    pass
-
 
 class PathTraversalError(SecurityError):
     """Raised when a path traversal attack is detected."""
@@ -251,8 +243,6 @@ class UnsafeOperationError(SecurityError):
 
 class ResourceError(PPTXError):
     """Base class for resource management errors."""
-
-    pass
 
 
 class ResourceExhaustedError(ResourceError):
@@ -296,8 +286,6 @@ class RateLimitExceededError(ResourceError):
 class IntegrationError(PPTXError):
     """Base class for external integration errors."""
 
-    pass
-
 
 class AzureAPIError(IntegrationError):
     """Raised when Azure API calls fail."""
@@ -318,8 +306,6 @@ class AzureAPIError(IntegrationError):
 
 class CacheError(PPTXError):
     """Base class for cache-related errors."""
-
-    pass
 
 
 class CacheMissError(CacheError):

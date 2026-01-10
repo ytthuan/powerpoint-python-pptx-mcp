@@ -17,7 +17,9 @@ def get_health_tools() -> list[Tool]:
     return [
         Tool(
             name="health_check",
-            description="Check the health status of the MCP server including cache, config, and metrics",
+            description=(
+                "Check the health status of the MCP server including " "cache, config, and metrics"
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
