@@ -16,7 +16,7 @@ async def list_pptx_resources(base_path: str | Path = ".") -> List[Resource]:
     # Search for PPTX files (case-insensitive for extension)
     pptx_files = []
     # Run blocking glob in a thread if needed, but for now we'll do it here
-    # since it's usually fast enough for local files. 
+    # since it's usually fast enough for local files.
     # However, get_presentation_info() is now async, so we MUST be async.
     for pattern in ["*.pptx", "*.PPTX", "*.pptm", "*.PPTM"]:
         pptx_files.extend(list(base_path.rglob(pattern)))

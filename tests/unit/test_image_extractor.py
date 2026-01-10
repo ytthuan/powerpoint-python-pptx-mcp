@@ -54,7 +54,7 @@ def test_extract_image_as_base64(mock_zip_class, mock_validate_path):
 @patch("src.mcp_server.core.image_extractor.validate_slide_number")
 @patch("pptx.Presentation")
 @patch("PIL.Image.open")
-def test_extract_slide_images(
+async def test_extract_slide_images(
     mock_image_open, mock_pres_class, mock_validate_slide, mock_validate_path
 ):
     mock_validate_path.return_value = Path("test.pptx")
@@ -78,7 +78,7 @@ def test_extract_slide_images(
     mock_img.format = "JPEG"
     mock_image_open.return_value = mock_img
 
-    result = extract_slide_images("test.pptx", 1)
+    result = await extract_slide_images("test.pptx", 1)
 
     assert len(result) == 1
     assert result[0]["shape_id"] == 10
