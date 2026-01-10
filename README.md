@@ -42,7 +42,36 @@ python3 -m mcp_server.server
 docker-compose -f docker/docker-compose.yml up -d
 ```
 
+**Docker Compose (with volume + env):**
+```bash
+# From repo root
+docker compose -f docker/docker-compose.yml up --build
+
+# PPTX files: place them in ./desks on the host; they mount to /workspace/desks in the container.
+# Optional: set Azure env for automated notes
+# export AZURE_AI_PROJECT_ENDPOINT="https://..."
+# export MODEL_DEPLOYMENT_NAME="..."
+```
+
 ### Connecting AI Agents
+
+#### Containerized (Docker Compose)
+- Start the service: `docker compose -f docker/docker-compose.yml up --build`
+- Point your MCP client to run the server via `docker exec -i pptx-mcp-container python3 -m mcp_server.server`
+- Working directory inside container: `/app`; decks live at `/workspace/desks` (mounted from host `./desks`).
+
+Container MCP config example (Cursor/VS Code):
+```json
+{
+  "mcpServers": {
+    "pptx": {
+      "command": "docker",
+      "args": ["exec", "-i", "pptx-mcp-container", "python3", "-m", "mcp_server.server"],
+      "cwd": "/app"
+    }
+  }
+}
+```
 
 #### Cursor IDE
 
@@ -54,7 +83,10 @@ Add to Cursor Settings → Features → Model Context Protocol:
     "pptx": {
       "command": "python3",
       "args": ["-m", "mcp_server.server"],
-      "cwd": "/path/to/powerpoint-python-pptx-mcp"
+      "cwd": "/path/to/powerpoint-python-pptx-mcp",
+      "env": {
+			"PYTHONPATH": "</path/to>/powerpoint-python-pptx-mcp/src"
+		}
     }
   }
 }
