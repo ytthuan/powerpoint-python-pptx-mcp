@@ -1,7 +1,6 @@
 import pytest
 import tempfile
 import os
-from pathlib import Path
 from pptx import Presentation
 from src.mcp_server.tools.notes_tools import handle_process_notes_workflow
 from src.mcp_server.core.pptx_handler import PPTXHandler
@@ -46,7 +45,10 @@ async def test_process_notes_workflow_vietnamese_policy(test_pptx):
         {
             "slide_number": 1,
             "short_text": "Chào anh/chị, chúng ta sẽ bắt đầu buổi thuyết trình hôm nay.",
-            "original_text": "Chào mừng các anh/chị đã đến với buổi chia sẻ. Hôm nay chúng ta sẽ cùng nhau tìm hiểu về giải pháp mới này.",
+            "original_text": (
+                "Chào mừng các anh/chị đã đến với buổi chia sẻ. "
+                "Hôm nay chúng ta sẽ cùng nhau tìm hiểu về giải pháp mới này."
+            ),
         }
     ]
 
@@ -62,7 +64,13 @@ async def test_process_notes_workflow_vietnamese_policy(test_pptx):
     handler = PPTXHandler(test_pptx)
     notes = handler.get_notes(1)
 
-    expected_structure = "- Short version:\nChào anh/chị, chúng ta sẽ bắt đầu buổi thuyết trình hôm nay.\n\n- Original:\nChào mừng các anh/chị đã đến với buổi chia sẻ. Hôm nay chúng ta sẽ cùng nhau tìm hiểu về giải pháp mới này."
+    expected_structure = (
+        "- Short version:\n"
+        "Chào anh/chị, chúng ta sẽ bắt đầu buổi thuyết trình hôm nay.\n\n"
+        "- Original:\n"
+        "Chào mừng các anh/chị đã đến với buổi chia sẻ. "
+        "Hôm nay chúng ta sẽ cùng nhau tìm hiểu về giải pháp mới này."
+    )
 
     assert notes["notes"] == expected_structure
     assert "anh/chị" in notes["notes"]

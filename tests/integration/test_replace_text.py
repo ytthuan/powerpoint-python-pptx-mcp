@@ -2,9 +2,9 @@
 """Unit tests for replace_text tool."""
 
 import tempfile
-import traceback
 from pathlib import Path
 
+import pytest
 from pptx import Presentation
 from pptx.util import Inches
 
@@ -44,9 +44,6 @@ def create_test_pptx(path: Path) -> None:
     text_frame2.text = "Second slide notes with some text to find."
 
     prs.save(str(path))
-
-
-import pytest
 
 
 @pytest.fixture
@@ -162,7 +159,7 @@ async def test_dry_run(test_pptx_file):
 
     assert notes_before == notes_after, "File was modified in dry run mode!"
     assert result.get("replacements_count", 0) > 0, "No changes detected"
-    assert result.get("dry_run") == True, "Dry run flag not set"
+    assert result.get("dry_run") is True, "Dry run flag not set"
 
 
 @pytest.mark.asyncio

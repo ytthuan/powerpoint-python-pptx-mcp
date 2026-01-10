@@ -9,18 +9,15 @@ from src.mcp_server.utils.validators import (
     validate_slide_number,
     validate_position,
     validate_size,
-    validate_image_path,
     validate_text_input,
     parse_slide_range,
     validate_slide_numbers,
     validate_batch_updates,
 )
 from src.mcp_server.exceptions import (
-    PPTXFileNotFoundError,
     FileTooLargeError,
     InvalidPathError,
     InvalidSlideNumberError,
-    PathTraversalError,
     ValidationError,
     WorkspaceBoundaryError,
     InputTooLargeError,

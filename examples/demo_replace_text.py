@@ -70,7 +70,7 @@ async def demo_literal_replacement():
             }
         )
 
-        print(f"\n✅ Result:")
+        print("\n✅ Result:")
         print(f"  Success: {result['success']}")
         print(f"  Slides scanned: {result['slides_scanned']}")
         print(f"  Replacements made: {result['replacements_count']}")
@@ -114,7 +114,7 @@ async def demo_regex_email():
             }
         )
 
-        print(f"\n✅ Result:")
+        print("\n✅ Result:")
         print(f"  Success: {result['success']}")
         print(f"  Replacements made: {result['replacements_count']}")
         print(f"  Affected shapes: {result['affected_shapes']}")
@@ -150,7 +150,7 @@ async def demo_dry_run():
             }
         )
 
-        print(f"\n✅ Dry Run Result:")
+        print("\n✅ Dry Run Result:")
         print(f"  Success: {result['success']}")
         print(f"  Dry run: {result['dry_run']}")
         print(f"  Would replace: {result['replacements_count']} instances")
@@ -194,7 +194,7 @@ async def demo_case_insensitive():
             }
         )
 
-        print(f"\n✅ Result:")
+        print("\n✅ Result:")
         print(f"  Success: {result['success']}")
         print(f"  Replacements made: {result['replacements_count']}")
 

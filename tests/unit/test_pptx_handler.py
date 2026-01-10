@@ -2,7 +2,6 @@ import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 from src.mcp_server.core.pptx_handler import PPTXHandler
-from pptx.enum.shapes import MSO_SHAPE_TYPE
 
 
 @pytest.fixture

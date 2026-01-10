@@ -1,6 +1,5 @@
 import pytest
 import zipfile
-import io
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 from lxml import etree
@@ -83,11 +82,16 @@ def test_set_notes_text_bold_formatting():
 
 def test_notes_part_for_slide_found():
     # Create a mock zip with a .rels file
-    rels_content = f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-    <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-        <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide" Target="../notesSlides/notesSlide1.xml"/>
-    </Relationships>
-    """.encode()
+    rels_content = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+        '    <Relationships xmlns="http://schemas.openxmlformats.org/'
+        'package/2006/relationships">\n'
+        '        <Relationship Id="rId1" '
+        'Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/'
+        'notesSlide" Target="../notesSlides/notesSlide1.xml"/>\n'
+        "    </Relationships>\n"
+        "    "
+    ).encode()
 
     mock_zip = MagicMock(spec=zipfile.ZipFile)
     mock_zip.read.return_value = rels_content

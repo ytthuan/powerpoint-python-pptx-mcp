@@ -62,16 +62,22 @@ async def demo_update_batch():
         tmp_path = Path(tmp.name)
     shutil.copy2(test_pptx, tmp_path)
 
-    print(f"\n📝 Updating slides 1 and 2 in temporary file...")
+    print("\n📝 Updating slides 1 and 2 in temporary file...")
 
     updates = [
         {
             "slide_number": 1,
-            "notes_text": "- Short version:\nDemo short notes for slide 1\n\n- Original:\nThis is a demonstration of batch update capabilities.",
+            "notes_text": (
+                "- Short version:\nDemo short notes for slide 1\n\n"
+                "- Original:\nThis is a demonstration of batch update capabilities."
+            ),
         },
         {
             "slide_number": 2,
-            "notes_text": "- Short version:\nDemo short notes for slide 2\n\n- Original:\nAnother example of batch updating speaker notes.",
+            "notes_text": (
+                "- Short version:\nDemo short notes for slide 2\n\n"
+                "- Original:\nAnother example of batch updating speaker notes."
+            ),
         },
     ]
 
@@ -117,19 +123,25 @@ async def demo_workflow():
         tmp_path = Path(tmp.name)
     shutil.copy2(test_pptx, tmp_path)
 
-    print(f"\n🎯 Processing slides with automatic formatting...")
+    print("\n🎯 Processing slides with automatic formatting...")
 
     # Simulated LLM-processed content
     notes_data = [
         {
             "slide_number": 1,
             "short_text": "Chào mừng anh chị đến với bài thuyết trình",
-            "original_text": "Chào mừng anh chị đến với bài thuyết trình của chúng ta hôm nay. Chúng ta sẽ cùng tìm hiểu về các tính năng mới.",
+            "original_text": (
+                "Chào mừng anh chị đến với bài thuyết trình của chúng ta hôm nay. "
+                "Chúng ta sẽ cùng tìm hiểu về các tính năng mới."
+            ),
         },
         {
             "slide_number": 2,
             "short_text": "Tính năng batch operations giúp xử lý nhanh hơn",
-            "original_text": "Tính năng batch operations cho phép chúng ta xử lý nhiều slide cùng lúc, giúp tăng hiệu suất và giảm thời gian xử lý.",
+            "original_text": (
+                "Tính năng batch operations cho phép chúng ta xử lý nhiều slide "
+                "cùng lúc, giúp tăng hiệu suất và giảm thời gian xử lý."
+            ),
         },
     ]
 

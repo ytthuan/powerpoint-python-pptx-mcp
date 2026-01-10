@@ -1,6 +1,5 @@
 """Integration tests for slide visibility MCP tools."""
 
-import asyncio
 import tempfile
 import os
 from pptx import Presentation
@@ -51,11 +50,11 @@ async def test_read_slides_metadata_tool(temp_pptx):
     assert result["total_slides"] == 3
     assert len(result["slides"]) == 3
     assert result["slides"][0]["title"] == "Visible Slide 1"
-    assert result["slides"][0]["hidden"] == False
+    assert result["slides"][0]["hidden"] is False
     assert result["slides"][1]["title"] == "Hidden Slide 2"
-    assert result["slides"][1]["hidden"] == True
+    assert result["slides"][1]["hidden"] is True
     assert result["slides"][2]["title"] == "Visible Slide 3"
-    assert result["slides"][2]["hidden"] == False
+    assert result["slides"][2]["hidden"] is False
 
     # Test with include_hidden=False
     result = await handle_read_slides_metadata({"pptx_path": temp_pptx, "include_hidden": False})
@@ -87,26 +86,26 @@ async def test_read_slide_content_with_hidden(temp_pptx):
     result = await handle_read_slide_content({"pptx_path": temp_pptx, "slide_number": 1})
 
     assert "hidden" in result
-    assert result["hidden"] == False
+    assert result["hidden"] is False
     assert result["title"] == "Visible Slide"
 
     result = await handle_read_slide_content({"pptx_path": temp_pptx, "slide_number": 2})
 
-    assert result["hidden"] == True
+    assert result["hidden"] is True
     assert result["title"] == "Hidden Slide"
 
     # Test all slides with include_hidden=True
     result = await handle_read_slide_content({"pptx_path": temp_pptx, "include_hidden": True})
 
     assert len(result["slides"]) == 2
-    assert result["slides"][0]["hidden"] == False
-    assert result["slides"][1]["hidden"] == True
+    assert result["slides"][0]["hidden"] is False
+    assert result["slides"][1]["hidden"] is True
 
     # Test all slides with include_hidden=False
     result = await handle_read_slide_content({"pptx_path": temp_pptx, "include_hidden": False})
 
     assert len(result["slides"]) == 1  # Only visible
-    assert result["slides"][0]["hidden"] == False
+    assert result["slides"][0]["hidden"] is False
     assert result["slides"][0]["title"] == "Visible Slide"
 
 
@@ -153,9 +152,9 @@ async def test_set_slide_visibility_tool(temp_pptx):
         {"pptx_path": temp_pptx, "slide_number": 1, "hidden": True}
     )
 
-    assert result["success"] == True
+    assert result["success"] is True
     assert result["slide_number"] == 1
-    assert result["hidden"] == True
+    assert result["hidden"] is True
     output_path = result["output_path"]
 
     # Verify the slide is hidden in the output file
@@ -163,15 +162,15 @@ async def test_set_slide_visibility_tool(temp_pptx):
         verify_result = await handle_read_slide_content(
             {"pptx_path": output_path, "slide_number": 1}
         )
-        assert verify_result["hidden"] == True
+        assert verify_result["hidden"] is True
 
         # Show the slide again
         result = await handle_set_slide_visibility(
             {"pptx_path": output_path, "slide_number": 1, "hidden": False}
         )
 
-        assert result["success"] == True
-        assert result["hidden"] == False
+        assert result["success"] is True
+        assert result["hidden"] is False
         output_path2 = result["output_path"]
 
         try:
@@ -179,7 +178,7 @@ async def test_set_slide_visibility_tool(temp_pptx):
             verify_result = await handle_read_slide_content(
                 {"pptx_path": output_path2, "slide_number": 1}
             )
-            assert verify_result["hidden"] == False
+            assert verify_result["hidden"] is False
         finally:
             if os.path.exists(output_path2):
                 os.unlink(output_path2)

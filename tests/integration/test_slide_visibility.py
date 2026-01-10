@@ -37,9 +37,9 @@ def test_is_slide_hidden(temp_pptx):
     # Test with PPTXHandler
     handler = PPTXHandler(temp_pptx)
 
-    assert handler.is_slide_hidden(1) == False, "Slide 1 should be visible"
-    assert handler.is_slide_hidden(2) == True, "Slide 2 should be hidden"
-    assert handler.is_slide_hidden(3) == False, "Slide 3 should be visible"
+    assert handler.is_slide_hidden(1) is False, "Slide 1 should be visible"
+    assert handler.is_slide_hidden(2) is True, "Slide 2 should be hidden"
+    assert handler.is_slide_hidden(3) is False, "Slide 3 should be visible"
 
 
 def test_set_slide_hidden(temp_pptx):
@@ -57,23 +57,23 @@ def test_set_slide_hidden(temp_pptx):
     handler = PPTXHandler(temp_pptx)
 
     # All slides should be visible initially
-    assert handler.is_slide_hidden(1) == False
-    assert handler.is_slide_hidden(2) == False
-    assert handler.is_slide_hidden(3) == False
+    assert handler.is_slide_hidden(1) is False
+    assert handler.is_slide_hidden(2) is False
+    assert handler.is_slide_hidden(3) is False
 
     # Hide slide 2
     handler.set_slide_hidden(2, True)
-    assert handler.is_slide_hidden(2) == True, "Slide 2 should now be hidden"
+    assert handler.is_slide_hidden(2) is True, "Slide 2 should now be hidden"
 
     # Show slide 2 again
     handler.set_slide_hidden(2, False)
-    assert handler.is_slide_hidden(2) == False, "Slide 2 should now be visible"
+    assert handler.is_slide_hidden(2) is False, "Slide 2 should now be visible"
 
     # Hide slide 1 and 3
     handler.set_slide_hidden(1, True)
     handler.set_slide_hidden(3, True)
-    assert handler.is_slide_hidden(1) == True
-    assert handler.is_slide_hidden(3) == True
+    assert handler.is_slide_hidden(1) is True
+    assert handler.is_slide_hidden(3) is True
 
     # Save and reload to verify persistence
     fd, temp_file2 = tempfile.mkstemp(suffix=".pptx")
@@ -82,9 +82,9 @@ def test_set_slide_hidden(temp_pptx):
         handler.save(temp_file2)
 
         handler2 = PPTXHandler(temp_file2)
-        assert handler2.is_slide_hidden(1) == True, "Slide 1 should remain hidden after save"
-        assert handler2.is_slide_hidden(2) == False, "Slide 2 should remain visible after save"
-        assert handler2.is_slide_hidden(3) == True, "Slide 3 should remain hidden after save"
+        assert handler2.is_slide_hidden(1) is True, "Slide 1 should remain hidden after save"
+        assert handler2.is_slide_hidden(2) is False, "Slide 2 should remain visible after save"
+        assert handler2.is_slide_hidden(3) is True, "Slide 3 should remain hidden after save"
     finally:
         if os.path.exists(temp_file2):
             os.unlink(temp_file2)
@@ -115,11 +115,11 @@ def test_get_slides_metadata(temp_pptx):
     all_metadata = handler.get_slides_metadata(include_hidden=True)
     assert len(all_metadata) == 3, "Should have 3 slides"
     assert all_metadata[0]["title"] == "Title 1"
-    assert all_metadata[0]["hidden"] == False
+    assert all_metadata[0]["hidden"] is False
     assert all_metadata[1]["title"] == "Title 2"
-    assert all_metadata[1]["hidden"] == True
+    assert all_metadata[1]["hidden"] is True
     assert all_metadata[2]["title"] == "Title 3"
-    assert all_metadata[2]["hidden"] == False
+    assert all_metadata[2]["hidden"] is False
 
     # Get only visible slides
     visible_metadata = handler.get_slides_metadata(include_hidden=False)
@@ -145,7 +145,7 @@ def test_get_slide_content_includes_hidden(temp_pptx):
 
     content = handler.get_slide_content(1)
     assert "hidden" in content, "Content should include hidden field"
-    assert content["hidden"] == True, "Slide should be marked as hidden"
+    assert content["hidden"] is True, "Slide should be marked as hidden"
     assert content["title"] == "Test Slide"
 
 

@@ -68,9 +68,10 @@ async def test_mcp_server():
                 response = json.loads(response_line.strip())
                 if "result" in response:
                     print("   ✅ Initialization successful!")
-                    print(
-                        f"   📋 Server info: {response.get('result', {}).get('serverInfo', {}).get('name', 'Unknown')}"
+                    server_name = (
+                        response.get("result", {}).get("serverInfo", {}).get("name", "Unknown")
                     )
+                    print(f"   📋 Server info: {server_name}")
                 else:
                     print(f"   ❌ Initialization failed: {response}")
                     return False
@@ -138,7 +139,7 @@ async def test_mcp_server():
             stderr_output = process.stderr.read()
             if stderr_output and "ERROR" in stderr_output:
                 print(f"\n⚠️  Server errors:\n{stderr_output}")
-        except:
+        except Exception:
             pass
 
 
@@ -146,7 +147,7 @@ def test_server_import():
     """Test if server module can be imported."""
     print("\n0️⃣  Testing server module import...")
     try:
-        from mcp_server.server import server
+        from mcp_server.server import server  # noqa: F401
 
         print("   ✅ Server module imported successfully")
         return True
@@ -253,8 +254,6 @@ def quick_test():
 
 
 if __name__ == "__main__":
-    import sys
-
     # Check if --quick flag is provided
     if "--quick" in sys.argv or "-q" in sys.argv:
         success = quick_test()

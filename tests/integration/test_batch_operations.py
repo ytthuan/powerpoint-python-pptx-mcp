@@ -19,10 +19,7 @@ from mcp_server.utils.validators import (
 )
 
 
-from mcp_server.exceptions import (
-    InvalidSlideNumberError,
-    ValidationError,
-)
+from mcp_server.exceptions import InvalidSlideNumberError
 
 
 class TestSlideRangeParsing:
