@@ -13,7 +13,7 @@ def get_read_tools() -> list[Tool]:
     return [
         Tool(
             name="read_slide_content",
-            description="Read comprehensive content from a slide including text, shapes, images, and visibility status",  # noqa: E501
+            description="[Category: read] [Tags: slides, content, comprehensive] Read comprehensive content from a slide including text, shapes, images, and visibility status",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -37,7 +37,7 @@ def get_read_tools() -> list[Tool]:
         ),
         Tool(
             name="read_slide_text",
-            description="Read all text content from a slide",
+            description="[Category: read] [Tags: slides, text] Read all text content from a slide",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -56,7 +56,7 @@ def get_read_tools() -> list[Tool]:
         ),
         Tool(
             name="read_slide_images",
-            description="Read image information from a slide",
+            description="[Category: read] [Tags: slides, images] Read image information from a slide",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -75,7 +75,7 @@ def get_read_tools() -> list[Tool]:
         ),
         Tool(
             name="read_presentation_info",
-            description="Get presentation metadata including slide count, dimensions, and visibility statistics",  # noqa: E501
+            description="[Category: read] [Tags: presentation, metadata] Get presentation metadata including slide count, dimensions, and visibility statistics",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -89,7 +89,7 @@ def get_read_tools() -> list[Tool]:
         ),
         Tool(
             name="read_slides_metadata",
-            description="Get metadata for all slides including their visibility status (hidden/visible)",  # noqa: E501
+            description="[Category: read] [Tags: slides, metadata, visibility] Get metadata for all slides including their visibility status (hidden/visible)",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {

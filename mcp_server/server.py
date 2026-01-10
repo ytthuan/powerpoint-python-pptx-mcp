@@ -8,6 +8,7 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Resource, Tool
 
+from .config import get_config
 from .tools.read_tools import (
     get_read_tools,
     handle_read_slide_content,
@@ -46,6 +47,18 @@ from .tools.text_replace_tools import (
     get_text_replace_tools,
     handle_replace_text,
 )
+from .tools.health_tools import (
+    get_health_tools,
+    handle_health_check,
+)
+from .tools.registry import get_tool_registry
+from .middleware import (
+    MiddlewarePipeline,
+    LoggingMiddleware,
+    ValidationMiddleware,
+    MetricsMiddleware,
+)
+from .rate_limiter import RateLimiterMiddleware
 from .resources.pptx_resources import list_pptx_resources, get_pptx_resource
 
 # Configure logging
@@ -59,6 +72,67 @@ logger = logging.getLogger(__name__)
 server = Server("pptx-mcp-server")
 
 
+# Initialize tool registry and register all tools
+def register_all_tools():
+    """Register all tool handlers with the tool registry."""
+    registry = get_tool_registry()
+
+    # Read tools
+    registry.register_handler("read_slide_content", handle_read_slide_content)
+    registry.register_handler("read_slide_text", handle_read_slide_text)
+    registry.register_handler("read_slide_images", handle_read_slide_images)
+    registry.register_handler("read_presentation_info", handle_read_presentation_info)
+    registry.register_handler("read_slides_metadata", handle_read_slides_metadata)
+
+    # Edit tools
+    registry.register_handler("update_slide_text", handle_update_slide_text)
+    registry.register_handler("replace_slide_image", handle_replace_slide_image)
+    registry.register_handler("add_text_box", handle_add_text_box)
+    registry.register_handler("add_image", handle_add_image)
+    registry.register_handler("replace_slide_content", handle_replace_slide_content)
+    registry.register_handler("update_slide_content", handle_update_slide_content)
+
+    # Slide management tools
+    registry.register_handler("add_slide", handle_add_slide)
+    registry.register_handler("delete_slide", handle_delete_slide)
+    registry.register_handler("duplicate_slide", handle_duplicate_slide)
+    registry.register_handler("change_slide_layout", handle_change_slide_layout)
+    registry.register_handler("set_slide_visibility", handle_set_slide_visibility)
+
+    # Notes tools
+    registry.register_handler("read_notes", handle_read_notes)
+    registry.register_handler("read_notes_batch", handle_read_notes_batch)
+    registry.register_handler("update_notes", handle_update_notes)
+    registry.register_handler("update_notes_batch", handle_update_notes_batch)
+    registry.register_handler("format_notes_structure", handle_format_notes_structure)
+    registry.register_handler("process_notes_workflow", handle_process_notes_workflow)
+
+    # Text replacement tools
+    registry.register_handler("replace_text", handle_replace_text)
+
+    # Health tools
+    registry.register_handler("health_check", handle_health_check)
+
+    logger.info(f"Registered {len(registry.get_registered_tools())} tools")
+
+
+# Initialize middleware pipeline
+def create_middleware_pipeline() -> MiddlewarePipeline:
+    """Create the middleware pipeline for tool calls."""
+    middlewares = [
+        LoggingMiddleware(),
+        ValidationMiddleware(),
+        MetricsMiddleware(),
+        RateLimiterMiddleware(),
+    ]
+    return MiddlewarePipeline(middlewares)
+
+
+# Register tools and create middleware on module load
+register_all_tools()
+middleware_pipeline = create_middleware_pipeline()
+
+
 @server.list_tools()
 async def list_tools() -> list[Tool]:
     """List all available tools."""
@@ -68,73 +142,21 @@ async def list_tools() -> list[Tool]:
     tools.extend(get_slide_tools())
     tools.extend(get_notes_tools())
     tools.extend(get_text_replace_tools())
+    tools.extend(get_health_tools())
     return tools
 
 
 @server.call_tool()
 async def call_tool(name: str, arguments: dict) -> dict:
-    """Handle tool calls."""
+    """Handle tool calls using registry and middleware pipeline."""
     logger.info(f"Tool call: {name} with arguments: {arguments}")
 
     try:
-        # Read tools
-        if name == "read_slide_content":
-            return await handle_read_slide_content(arguments)
-        elif name == "read_slide_text":
-            return await handle_read_slide_text(arguments)
-        elif name == "read_slide_images":
-            return await handle_read_slide_images(arguments)
-        elif name == "read_presentation_info":
-            return await handle_read_presentation_info(arguments)
-        elif name == "read_slides_metadata":
-            return await handle_read_slides_metadata(arguments)
+        # Get the tool registry
+        registry = get_tool_registry()
 
-        # Edit tools
-        elif name == "update_slide_text":
-            return await handle_update_slide_text(arguments)
-        elif name == "replace_slide_image":
-            return await handle_replace_slide_image(arguments)
-        elif name == "add_text_box":
-            return await handle_add_text_box(arguments)
-        elif name == "add_image":
-            return await handle_add_image(arguments)
-        elif name == "replace_slide_content":
-            return await handle_replace_slide_content(arguments)
-        elif name == "update_slide_content":
-            return await handle_update_slide_content(arguments)
-
-        # Slide management tools
-        elif name == "add_slide":
-            return await handle_add_slide(arguments)
-        elif name == "delete_slide":
-            return await handle_delete_slide(arguments)
-        elif name == "duplicate_slide":
-            return await handle_duplicate_slide(arguments)
-        elif name == "change_slide_layout":
-            return await handle_change_slide_layout(arguments)
-        elif name == "set_slide_visibility":
-            return await handle_set_slide_visibility(arguments)
-
-        # Notes tools
-        elif name == "read_notes":
-            return await handle_read_notes(arguments)
-        elif name == "read_notes_batch":
-            return await handle_read_notes_batch(arguments)
-        elif name == "update_notes":
-            return await handle_update_notes(arguments)
-        elif name == "update_notes_batch":
-            return await handle_update_notes_batch(arguments)
-        elif name == "format_notes_structure":
-            return await handle_format_notes_structure(arguments)
-        elif name == "process_notes_workflow":
-            return await handle_process_notes_workflow(arguments)
-
-        # Text replacement tools
-        elif name == "replace_text":
-            return await handle_replace_text(arguments)
-
-        else:
-            raise ValueError(f"Unknown tool: {name}")
+        # Execute through middleware pipeline
+        return await middleware_pipeline.execute(name, arguments, registry.dispatch)
 
     except Exception as e:
         logger.error(f"Error executing tool {name}: {e}", exc_info=True)
@@ -144,12 +166,18 @@ async def call_tool(name: str, arguments: dict) -> dict:
 @server.list_resources()
 async def list_resources() -> list[Resource]:
     """List all available resources."""
-    # Search in common locations
-    search_paths = [
-        Path.cwd(),
-        Path.cwd() / "src" / "deck",
-        Path.cwd() / "src",
-    ]
+    config = get_config()
+
+    # Use configured search paths if available, otherwise use defaults
+    if config.resource_search_paths:
+        search_paths = config.resource_search_paths
+    else:
+        # Default search paths
+        search_paths = [
+            Path.cwd(),
+            Path.cwd() / "src" / "deck",
+            Path.cwd() / "src",
+        ]
 
     resources = []
     for search_path in search_paths:
@@ -178,12 +206,36 @@ async def main():
     """Main entry point for MCP server."""
     logger.info("Starting PPTX MCP Server...")
 
-    async with stdio_server() as (read_stream, write_stream):
-        await server.run(
-            read_stream,
-            write_stream,
-            server.create_initialization_options(),
-        )
+    # Startup tasks
+    try:
+        config = get_config()
+        logger.info(f"Running in {config.environment.value} environment")
+        logger.info(f"Cache enabled: {config.performance.enable_cache}")
+        logger.info(f"Rate limiting enabled: {config.performance.enable_rate_limiting}")
+
+        # Initialize services if needed
+        # (Cache and metrics are lazily initialized via ServiceRegistry)
+
+    except Exception as e:
+        logger.error(f"Error during startup: {e}", exc_info=True)
+        raise
+
+    try:
+        async with stdio_server() as (read_stream, write_stream):
+            await server.run(
+                read_stream,
+                write_stream,
+                server.create_initialization_options(),
+            )
+    finally:
+        # Shutdown tasks
+        logger.info("Shutting down PPTX MCP Server...")
+        try:
+            # Perform any cleanup (cache persistence, etc.)
+            # For now, just log
+            logger.info("Cleanup completed")
+        except Exception as e:
+            logger.error(f"Error during shutdown: {e}", exc_info=True)
 
 
 if __name__ == "__main__":

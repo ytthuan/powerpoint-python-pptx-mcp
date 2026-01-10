@@ -370,13 +370,200 @@ See [MIGRATION.md](../MIGRATION.md) for detailed migration guide from scripts to
 ## Future Improvements
 
 Planned enhancements:
-- [ ] Async/await support throughout
-- [ ] Rate limiting middleware
-- [ ] Health check endpoint
+- [x] Tool registry with decorator pattern
+- [x] Middleware pipeline for cross-cutting concerns
+- [x] Rate limiting middleware
+- [x] Health check endpoint
+- [ ] Async/await file I/O throughout
 - [ ] Distributed caching (Redis)
 - [ ] OpenTelemetry integration
 - [ ] GraphQL API layer
 - [ ] WebSocket support for real-time updates
+
+## Latest Architectural Improvements (2026)
+
+### Tool Registry System (`tools/registry.py`)
+
+Replaces the large if/elif chain in `server.py` with a clean, maintainable decorator-based registry:
+
+**Features:**
+- Decorator-based tool registration
+- Type-safe handler dispatch
+- Easy tool discovery and introspection
+- Supports both decorator and direct registration
+
+**Usage:**
+```python
+from mcp_server.tools.registry import get_tool_registry, register_tool
+
+# Using decorator
+@register_tool("my_tool")
+async def handle_my_tool(arguments: dict) -> dict:
+    return {"result": "success"}
+
+# Direct registration
+registry = get_tool_registry()
+registry.register_handler("another_tool", handle_another_tool)
+
+# Dispatch
+result = await registry.dispatch("my_tool", {"key": "value"})
+
+# Introspection
+tools = registry.get_registered_tools()  # ['my_tool', 'another_tool']
+is_registered = registry.is_registered("my_tool")  # True
+```
+
+### Middleware Pipeline (`middleware.py`)
+
+Provides a composable middleware system for processing tool calls with cross-cutting concerns:
+
+**Built-in Middlewares:**
+
+1. **LoggingMiddleware**: Logs tool calls with correlation IDs
+   - Auto-generates correlation IDs for request tracing
+   - Logs start, completion, and execution time
+   - Error logging with full context
+
+2. **ValidationMiddleware**: Common input validation
+   - Validates slide_number (type and range)
+   - Validates pptx_path (type and emptiness)
+   - Consistent error messages
+
+3. **MetricsMiddleware**: Operation metrics collection
+   - Tracks tool call counts
+   - Records execution times
+   - Success/failure rates
+
+4. **RateLimiterMiddleware**: Rate limiting (see below)
+
+**Usage:**
+```python
+from mcp_server.middleware import (
+    MiddlewarePipeline,
+    LoggingMiddleware,
+    ValidationMiddleware,
+    MetricsMiddleware
+)
+
+# Create pipeline
+pipeline = MiddlewarePipeline([
+    LoggingMiddleware(),
+    ValidationMiddleware(),
+    MetricsMiddleware()
+])
+
+# Execute through pipeline
+result = await pipeline.execute("tool_name", args, handler)
+```
+
+**Custom Middleware:**
+```python
+class CustomMiddleware:
+    async def __call__(self, name, args, next_handler):
+        # Pre-processing
+        print(f"Before: {name}")
+        
+        # Call next middleware/handler
+        result = await next_handler(name, args)
+        
+        # Post-processing
+        print(f"After: {name}")
+        return result
+```
+
+### Rate Limiting (`rate_limiter.py`)
+
+Token bucket rate limiter for preventing abuse:
+
+**Features:**
+- Token bucket algorithm implementation
+- Configurable rate and burst limits
+- Blocking and non-blocking acquire
+- Rate limiter middleware for automatic enforcement
+
+**Configuration:**
+```python
+# In config.py or environment
+config.performance.enable_rate_limiting = True
+config.performance.max_requests_per_minute = 60
+```
+
+**Usage:**
+```python
+from mcp_server.rate_limiter import TokenBucketRateLimiter
+
+# Create limiter
+limiter = TokenBucketRateLimiter(
+    rate=60,      # 60 requests
+    per=60.0,     # per 60 seconds
+    burst=100     # allow bursts up to 100
+)
+
+# Blocking acquire (waits for token)
+await limiter.acquire()
+
+# Non-blocking try (returns False if no token)
+if await limiter.try_acquire():
+    process_request()
+else:
+    return "Rate limit exceeded"
+
+# Check availability
+tokens = limiter.get_available_tokens()
+wait_time = limiter.get_wait_time(tokens=5)
+```
+
+### Lifespan Management (`server.py`)
+
+Added proper startup and shutdown handling:
+
+**Startup:**
+- Configuration validation
+- Environment logging
+- Service initialization logging
+
+**Shutdown:**
+- Graceful cleanup
+- Cache persistence (if needed)
+- Resource release
+
+### Configurable Resource Discovery
+
+Resource search paths can now be configured via environment variable:
+
+```bash
+export MCP_RESOURCE_SEARCH_PATHS="/path/to/presentations,/another/path"
+```
+
+Or programmatically:
+```python
+config = get_config()
+config.resource_search_paths = [Path("/path/to/presentations")]
+```
+
+### Tool Metadata
+
+Tools now include standardized metadata in descriptions:
+
+**Format:**
+```
+[Category: <category>] [Tags: <tag1>, <tag2>] <description>
+```
+
+**Categories:**
+- `read`: Read operations
+- `edit`: Edit operations
+- `notes`: Notes operations
+- `slides`: Slide management
+- `health`: Health and monitoring
+
+**Example:**
+```python
+Tool(
+    name="read_slide_content",
+    description="[Category: read] [Tags: slides, content] Read comprehensive content from a slide"
+)
+```
 
 ## References
 
