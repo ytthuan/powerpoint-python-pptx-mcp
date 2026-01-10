@@ -1,0 +1,152 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pptx-mcp-server"
+version = "1.0.0"
+description = "Model Context Protocol server for PowerPoint PPTX manipulation"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "PPTX MCP Contributors"}
+]
+keywords = ["pptx", "powerpoint", "mcp", "model-context-protocol"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "python-pptx>=1.0.0",
+    "lxml>=4.9.0",
+    "python-dotenv",
+    "mcp>=1.25.0",
+    "Pillow>=10.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-xdist>=3.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+    "bandit>=1.7.0",
+    "interrogate>=1.5.0",
+]
+
+azure = [
+    "openai",
+    "azure-identity",
+    "azure-ai-projects>=2.0.0b1",
+]
+
+[project.urls]
+Homepage = "https://github.com/ytthuan/powerpoint-python-pptx-mcp"
+Repository = "https://github.com/ytthuan/powerpoint-python-pptx-mcp"
+Issues = "https://github.com/ytthuan/powerpoint-python-pptx-mcp/issues"
+
+# Black configuration
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.mypy_cache
+  | \.pytest_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | node_modules
+)/
+'''
+
+# isort configuration
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+# mypy configuration
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+strict_concatenate = true
+
+[[tool.mypy.overrides]]
+module = [
+    "pptx.*",
+    "lxml.*",
+    "mcp.*",
+]
+ignore_missing_imports = true
+
+# Bandit security checks configuration
+[tool.bandit]
+exclude_dirs = ["tests", "test_*.py"]
+skips = ["B101"]  # Skip assert_used check (needed for tests)
+
+# Interrogate docstring coverage
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = true
+ignore-magic = true
+ignore-semiprivate = true
+ignore-private = true
+ignore-property-decorators = true
+ignore-module = true
+ignore-nested-functions = true
+ignore-nested-classes = true
+fail-under = 80
+exclude = ["tests", "test_*.py", "setup.py", "docs"]
+verbose = 1
+quiet = false
+color = true
+
+# pytest configuration (supplemental to pytest.ini)
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+# Coverage configuration (supplemental to pytest.ini)
+[tool.coverage.paths]
+source = ["mcp_server"]
+
+[tool.coverage.run]
+branch = true
+parallel = true
+
+[tool.coverage.html]
+directory = "htmlcov"
