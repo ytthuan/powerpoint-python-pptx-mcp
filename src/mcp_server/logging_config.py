@@ -195,6 +195,12 @@ def setup_logging() -> None:
             file_handler.addFilter(CorrelationIdFilter())
         root_logger.addHandler(file_handler)
 
+    # Explicitly silence noisy library loggers unless they have warnings/errors
+    logging.getLogger("mcp").setLevel(logging.WARNING)
+    logging.getLogger("mcp.server.lowlevel.server").setLevel(logging.WARNING)
+    logging.getLogger("openai").setLevel(logging.WARNING)
+    logging.getLogger("azure").setLevel(logging.WARNING)
+
 
 def get_logger(name: str) -> LoggerAdapter:
     """Get a logger with structured logging support.

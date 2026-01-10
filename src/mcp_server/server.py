@@ -168,11 +168,21 @@ async def list_resources() -> list[Resource]:
     """List all available resources."""
     config = get_config()
 
-    # Use configured search paths if available, otherwise use defaults
+    # Collect all search paths
+    search_paths = []
+
+    # 1. Add explicitly configured search paths
     if config.resource_search_paths:
-        search_paths = config.resource_search_paths
-    else:
-        # Default search paths
+        search_paths.extend(config.resource_search_paths)
+
+    # 2. Add workspace directories (common for users to put decks there)
+    if config.security.workspace_dirs:
+        for ws_dir in config.security.workspace_dirs:
+            if ws_dir not in search_paths:
+                search_paths.append(ws_dir)
+
+    # 3. Add default search paths if nothing else is configured
+    if not search_paths:
         search_paths = [
             Path.cwd(),
             Path.cwd() / "src" / "deck",
@@ -180,9 +190,14 @@ async def list_resources() -> list[Resource]:
         ]
 
     resources = []
+    seen_uris = set()
+
     for search_path in search_paths:
         if search_path.exists():
-            resources.extend(list_pptx_resources(search_path))
+            for resource in list_pptx_resources(search_path):
+                if resource.uri not in seen_uris:
+                    resources.append(resource)
+                    seen_uris.add(resource.uri)
 
     return resources
 
@@ -208,7 +223,9 @@ async def main():
 
     # Startup tasks
     try:
+        from .logging_config import setup_logging
         config = get_config()
+        setup_logging()
         logger.info(f"Running in {config.environment.value} environment")
         logger.info(f"Cache enabled: {config.performance.enable_cache}")
         logger.info(f"Rate limiting enabled: {config.performance.enable_rate_limiting}")

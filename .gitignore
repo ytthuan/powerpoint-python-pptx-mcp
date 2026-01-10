@@ -190,3 +190,4 @@ test_data/
 *.pptx
 *.PPTX
 .DS_Store
+logs

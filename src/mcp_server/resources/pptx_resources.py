@@ -13,8 +13,13 @@ def list_pptx_resources(base_path: str | Path = ".") -> List[Resource]:
     base_path = Path(base_path)
     resources = []
 
-    # Search for PPTX files
-    pptx_files = list(base_path.rglob("*.pptx"))
+    # Search for PPTX files (case-insensitive for extension)
+    pptx_files = []
+    for pattern in ["*.pptx", "*.PPTX", "*.pptm", "*.PPTM"]:
+        pptx_files.extend(list(base_path.rglob(pattern)))
+
+    # Remove duplicates (some OS filesystems might be case-insensitive)
+    pptx_files = sorted(list(set(p.resolve() for p in pptx_files)))
 
     for pptx_path in pptx_files:
         try:
