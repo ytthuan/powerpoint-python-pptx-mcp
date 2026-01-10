@@ -47,7 +47,7 @@ class TestPPTXError:
         details = {"slide": 5}
         error = PPTXError("Test message", details=details)
         error_dict = error.to_dict()
-        
+
         assert error_dict["error_type"] == "PPTXError"
         assert error_dict["message"] == "Test message"
         assert error_dict["details"] == details
@@ -58,7 +58,7 @@ class TestPPTXError:
         cause = ValueError("Original error")
         error = PPTXError("Test message", cause=cause)
         error_dict = error.to_dict()
-        
+
         assert "cause" in error_dict
         assert error_dict["cause"] == "Original error"
 
@@ -171,7 +171,7 @@ class TestErrorHierarchy:
             SecurityError("test"),
             ResourceError("test"),
         ]
-        
+
         for error in errors:
             assert isinstance(error, PPTXError)
             assert isinstance(error, Exception)

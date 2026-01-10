@@ -20,7 +20,7 @@ from ..utils.validators import validate_pptx_path, validate_slide_number
 
 class PPTXHandler:
     """Handler for PPTX file operations with optional caching support.
-    
+
     This handler provides core PPTX file operations with:
     - Lazy loading of presentations
     - Optional caching for better performance
@@ -28,13 +28,13 @@ class PPTXHandler:
     """
 
     def __init__(
-        self, 
+        self,
         pptx_path: str | Path,
         cache: Optional[PresentationCache] = None,
-        enable_cache: Optional[bool] = None
+        enable_cache: Optional[bool] = None,
     ):
         """Initialize handler with PPTX file path.
-        
+
         Args:
             pptx_path: Path to PPTX file
             cache: Optional PresentationCache instance
@@ -42,10 +42,12 @@ class PPTXHandler:
         """
         self.pptx_path = validate_pptx_path(pptx_path)
         self._presentation: Optional[Presentation] = None
-        
+
         # Caching support
         config = get_config()
-        self._enable_cache = enable_cache if enable_cache is not None else config.performance.enable_cache
+        self._enable_cache = (
+            enable_cache if enable_cache is not None else config.performance.enable_cache
+        )
         self._cache = cache if self._enable_cache else None
         self._is_modified = False
 
@@ -59,24 +61,24 @@ class PPTXHandler:
                 if cached is not None:
                     self._presentation = cached
                     return self._presentation
-            
+
             # Load from file
             self._presentation = Presentation(str(self.pptx_path))
-            
+
             # Cache it
             if self._cache and self._enable_cache:
                 self._cache.cache_presentation(self.pptx_path, self._presentation)
-        
+
         return self._presentation
 
     def reload(self):
         """Reload presentation from file.
-        
+
         Clears cached presentation and marks for reload on next access.
         """
         self._presentation = None
         self._is_modified = False
-        
+
         # Invalidate cache
         if self._cache and self._enable_cache:
             self._cache.invalidate(self.pptx_path)
@@ -87,10 +89,10 @@ class PPTXHandler:
 
     def is_slide_hidden(self, slide_number: int) -> bool:
         """Check if a slide is hidden.
-        
+
         Args:
             slide_number: Slide number (1-indexed)
-            
+
         Returns:
             True if slide is hidden, False if visible
         """
@@ -99,17 +101,17 @@ class PPTXHandler:
         # The 'show' attribute is on the <sld> element, not on <sldId>
         # '0' means hidden, missing or '1' means visible
         # Handle both string and potential integer/None cases
-        show_attr = slide.element.get('show')
+        show_attr = slide.element.get("show")
         if show_attr is None:
             return False  # Missing attribute means visible
         # Convert to string and check - can be '0', 0, '1', 1, etc.
         show_value = str(show_attr).strip()
         # Check for '0' (hidden) - after str() conversion, 0 becomes '0'
-        return show_value == '0'
-    
+        return show_value == "0"
+
     def set_slide_hidden(self, slide_number: int, hidden: bool):
         """Set slide visibility.
-        
+
         Args:
             slide_number: Slide number (1-indexed)
             hidden: True to hide the slide, False to show it
@@ -118,12 +120,12 @@ class PPTXHandler:
         slide = self.presentation.slides[slide_number - 1]
         # The 'show' attribute is on the <sld> element, not on <sldId>
         if hidden:
-            slide.element.set('show', '0')
+            slide.element.set("show", "0")
         else:
             # Remove the show attribute to restore default (visible)
-            if 'show' in slide.element.attrib:
-                del slide.element.attrib['show']
-        
+            if "show" in slide.element.attrib:
+                del slide.element.attrib["show"]
+
         # Mark as modified
         self._is_modified = True
 
@@ -135,15 +137,15 @@ class PPTXHandler:
             slide = self.presentation.slides[idx]
             # The 'show' attribute is on the <sld> element, not on <sldId>
             # '0' means hidden, missing or '1' means visible
-            show_attr = slide.element.get('show')
+            show_attr = slide.element.get("show")
             if show_attr is None:
                 visible_count += 1  # Missing attribute means visible
             else:
                 show_value = str(show_attr).strip()
-                if show_value != '0':
+                if show_value != "0":
                     visible_count += 1
         hidden_count = slide_count - visible_count
-        
+
         return {
             "file_path": str(self.pptx_path),
             "file_name": self.pptx_path.name,
@@ -219,7 +221,9 @@ class PPTXHandler:
                 )
             if isinstance(shape, Picture):
                 shape_info["image"] = True
-                shape_info["image_path"] = shape.image.filename if hasattr(shape.image, "filename") else None
+                shape_info["image_path"] = (
+                    shape.image.filename if hasattr(shape.image, "filename") else None
+                )
             if shape.shape_type == MSO_SHAPE_TYPE.TABLE:
                 shape_info["table"] = True
                 shape_info["rows"] = len(shape.table.rows)
@@ -299,64 +303,64 @@ class PPTXHandler:
                         pass
                 slides.append({"slide": idx, "notes": notes_text})
             return {"slides": slides}
-    
+
     def get_slides_metadata(self, include_hidden: bool = True) -> List[Dict[str, Any]]:
         """Get metadata for all slides including their visibility status.
-        
+
         Args:
             include_hidden: If False, only return visible slides
-            
+
         Returns:
             List of slide metadata dictionaries
         """
         slides_metadata = []
         slide_count = self.get_slide_count()
         sldIdLst = self.presentation.slides._sldIdLst
-        
+
         for i in range(slide_count):
             # Check visibility directly without validation overhead
             slide = self.presentation.slides[i]
             # The 'show' attribute is on the <sld> element, not on <sldId>
-            show_attr = slide.element.get('show')
+            show_attr = slide.element.get("show")
             if show_attr is None:
                 is_hidden = False  # Missing attribute means visible
             else:
                 show_value = str(show_attr).strip()
-                is_hidden = show_value == '0'
-            
+                is_hidden = show_value == "0"
+
             if not include_hidden and is_hidden:
                 continue
-            
+
             slide = self.presentation.slides[i]
             title = ""
             if slide.shapes.title:
                 title = slide.shapes.title.text
-            
-            slides_metadata.append({
-                "slide_number": i + 1,  # Convert to 1-indexed
-                "title": title,
-                "hidden": is_hidden,
-                "slide_id": slide.slide_id,
-            })
-        
+
+            slides_metadata.append(
+                {
+                    "slide_number": i + 1,  # Convert to 1-indexed
+                    "title": title,
+                    "hidden": is_hidden,
+                    "slide_id": slide.slide_id,
+                }
+            )
+
         return slides_metadata
 
     def save(self, output_path: Optional[str | Path] = None):
         """Save presentation to file.
-        
+
         Args:
             output_path: Optional output path. If None, saves to original path.
         """
         save_path = Path(output_path) if output_path else self.pptx_path
         self.presentation.save(str(save_path))
-        
+
         # Invalidate cache after save
         if self._cache and self._enable_cache:
             self._cache.invalidate(save_path)
             # If saving to original path or same path, also invalidate original reference
             if output_path is None or Path(output_path) == self.pptx_path:
                 self._cache.invalidate(self.pptx_path)
-        
+
         self._is_modified = False
-
-

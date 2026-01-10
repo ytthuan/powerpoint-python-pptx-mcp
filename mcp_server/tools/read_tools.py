@@ -114,9 +114,9 @@ async def handle_read_slide_content(arguments: Dict[str, Any]) -> Dict[str, Any]
     pptx_path = arguments["pptx_path"]
     slide_number = arguments.get("slide_number")
     include_hidden = arguments.get("include_hidden", True)
-    
+
     handler = PPTXHandler(pptx_path)
-    
+
     if slide_number:
         return handler.get_slide_content(slide_number)
     else:
@@ -142,10 +142,10 @@ async def handle_read_slide_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
     """Handle read_slide_text tool call."""
     pptx_path = arguments["pptx_path"]
     slide_number = arguments["slide_number"]
-    
+
     handler = PPTXHandler(pptx_path)
     text = handler.get_slide_text(slide_number)
-    
+
     return {
         "slide_number": slide_number,
         "text": text,
@@ -156,9 +156,9 @@ async def handle_read_slide_images(arguments: Dict[str, Any]) -> Dict[str, Any]:
     """Handle read_slide_images tool call."""
     pptx_path = arguments["pptx_path"]
     slide_number = arguments["slide_number"]
-    
+
     images = extract_slide_images(pptx_path, slide_number)
-    
+
     return {
         "slide_number": slide_number,
         "images": images,
@@ -168,7 +168,7 @@ async def handle_read_slide_images(arguments: Dict[str, Any]) -> Dict[str, Any]:
 async def handle_read_presentation_info(arguments: Dict[str, Any]) -> Dict[str, Any]:
     """Handle read_presentation_info tool call."""
     pptx_path = arguments["pptx_path"]
-    
+
     handler = PPTXHandler(pptx_path)
     return handler.get_presentation_info()
 
@@ -177,13 +177,12 @@ async def handle_read_slides_metadata(arguments: Dict[str, Any]) -> Dict[str, An
     """Handle read_slides_metadata tool call."""
     pptx_path = arguments["pptx_path"]
     include_hidden = arguments.get("include_hidden", True)
-    
+
     handler = PPTXHandler(pptx_path)
     slides = handler.get_slides_metadata(include_hidden=include_hidden)
-    
+
     return {
         "pptx_path": pptx_path,
         "total_slides": handler.get_slide_count(),
         "slides": slides,
     }
-

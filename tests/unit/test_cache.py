@@ -33,15 +33,15 @@ class TestLRUCache:
         cache.set("key1", "value1")
         cache.set("key2", "value2")
         cache.set("key3", "value3")
-        
+
         # Access key1 to make it most recently used
         cache.get("key1")
-        
+
         # Add key4, should evict key2 (least recently used)
         cache.set("key4", "value4")
-        
+
         assert cache.get("key1") == "value1"  # Still there
-        assert cache.get("key2") is None      # Evicted
+        assert cache.get("key2") is None  # Evicted
         assert cache.get("key3") == "value3"  # Still there
         assert cache.get("key4") == "value4"  # Just added
 
@@ -49,13 +49,13 @@ class TestLRUCache:
         """Test TTL-based expiration."""
         cache = LRUCache(maxsize=10, default_ttl=1)
         cache.set("key1", "value1", ttl=1)
-        
+
         # Should be available immediately
         assert cache.get("key1") == "value1"
-        
+
         # Wait for expiration
         time.sleep(1.1)
-        
+
         # Should be expired now
         assert cache.get("key1") is None
 
@@ -63,7 +63,7 @@ class TestLRUCache:
         """Test that None TTL means no expiration."""
         cache = LRUCache(maxsize=10)
         cache.set("key1", "value1", ttl=None)
-        
+
         # Should still be available
         assert cache.get("key1") == "value1"
 
@@ -79,16 +79,16 @@ class TestLRUCache:
         cache = LRUCache(maxsize=10)
         cache.set("key1", "value1")
         cache.set("key2", "value2")
-        
+
         # Clear should reset everything
         cache.clear()
-        
+
         # Get stats before any operations to verify clear worked
         stats = cache.get_stats()
         assert stats["size"] == 0
         assert stats["hits"] == 0
         assert stats["misses"] == 0
-        
+
         # These will be misses but that's expected
         assert cache.get("key1") is None
         assert cache.get("key2") is None
@@ -96,11 +96,11 @@ class TestLRUCache:
     def test_statistics_tracking(self):
         """Test statistics tracking."""
         cache = LRUCache(maxsize=10)
-        
+
         cache.set("key1", "value1")
         cache.get("key1")  # Hit
         cache.get("key2")  # Miss
-        
+
         stats = cache.get_stats()
         assert stats["hits"] == 1
         assert stats["misses"] == 1
@@ -113,29 +113,29 @@ class TestLRUCache:
         cache.set("key1", "value1")
         cache.set("key2", "value2")
         cache.set("key3", "value3")  # Should trigger eviction
-        
+
         stats = cache.get_stats()
         assert stats["evictions"] == 1
 
     def test_thread_safety(self):
         """Test thread-safe operations."""
         cache = LRUCache(maxsize=100)
-        
+
         def worker(start, end):
             for i in range(start, end):
                 cache.set(f"key{i}", f"value{i}")
                 cache.get(f"key{i}")
-        
+
         threads = [
             Thread(target=worker, args=(0, 50)),
             Thread(target=worker, args=(50, 100)),
         ]
-        
+
         for thread in threads:
             thread.start()
         for thread in threads:
             thread.join()
-        
+
         # All values should be set
         stats = cache.get_stats()
         assert stats["size"] <= 100
@@ -145,9 +145,9 @@ class TestLRUCache:
         cache = LRUCache(maxsize=10)
         cache.set("key1", "value1", ttl=1)
         cache.set("key2", "value2", ttl=10)
-        
+
         time.sleep(1.1)
-        
+
         removed = cache.cleanup_expired()
         assert removed == 1
         assert cache.get("key1") is None
@@ -168,18 +168,18 @@ class TestPresentationCache:
         cache = PresentationCache()
         test_file = tmp_path / "test.pptx"
         test_file.write_text("test content")
-        
+
         # Mock presentation object
         mock_presentation = "MockPresentation"
-        
+
         # Cache the presentation
         cache.cache_presentation(test_file, mock_presentation)
         assert cache.get_presentation(test_file) == mock_presentation
-        
+
         # Modify file (change mtime)
         time.sleep(0.1)
         test_file.write_text("modified content")
-        
+
         # Should not find cached version (mtime changed)
         assert cache.get_presentation(test_file) is None
 
@@ -188,33 +188,33 @@ class TestPresentationCache:
         cache = PresentationCache()
         test_file = tmp_path / "test.pptx"
         test_file.write_text("test content")
-        
+
         mock_presentation = "MockPresentation"
         cache.cache_presentation(test_file, mock_presentation)
-        
+
         # Verify it's cached
         assert cache.get_presentation(test_file) == mock_presentation
-        
+
         # Invalidate
         cache.invalidate(test_file)
-        
+
         # Should no longer be cached
         assert cache.get_presentation(test_file) is None
 
     def test_clear(self, tmp_path):
         """Test clearing all cached presentations."""
         cache = PresentationCache()
-        
+
         test_file1 = tmp_path / "test1.pptx"
         test_file2 = tmp_path / "test2.pptx"
         test_file1.write_text("test1")
         test_file2.write_text("test2")
-        
+
         cache.cache_presentation(test_file1, "Mock1")
         cache.cache_presentation(test_file2, "Mock2")
-        
+
         cache.clear()
-        
+
         assert cache.get_presentation(test_file1) is None
         assert cache.get_presentation(test_file2) is None
 
@@ -223,10 +223,10 @@ class TestPresentationCache:
         cache = PresentationCache()
         test_file = tmp_path / "test.pptx"
         test_file.write_text("test content")
-        
+
         cache.cache_presentation(test_file, "Mock")
         cache.get_presentation(test_file)  # Hit
-        
+
         stats = cache.get_stats()
         assert "hits" in stats
         assert "misses" in stats

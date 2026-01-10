@@ -14,15 +14,15 @@ from .interfaces import IMetricsCollector
 
 class MetricsCollector(IMetricsCollector):
     """Simple in-memory metrics collector.
-    
+
     Collects and aggregates metrics for monitoring:
     - Operation duration and success/failure rates
     - Counter metrics (incremental values)
     - Gauge metrics (current values)
-    
+
     Example:
         collector = MetricsCollector()
-        
+
         # Record operation
         start = time.time()
         try:
@@ -32,41 +32,35 @@ class MetricsCollector(IMetricsCollector):
         except Exception:
             duration = (time.time() - start) * 1000
             collector.record_operation("load_pptx", duration, False)
-        
+
         # Increment counter
         collector.increment_counter("slides_processed", 10)
-        
+
         # Record gauge
         collector.record_gauge("cache_size", 45)
     """
-    
+
     def __init__(self):
         """Initialize metrics collector."""
         self._lock = Lock()
-        
+
         # Operation metrics: {operation_name: {durations: [...], successes: int, failures: int}}
         self._operations: Dict[str, Dict[str, Any]] = defaultdict(
             lambda: {"durations": [], "successes": 0, "failures": 0}
         )
-        
+
         # Counter metrics: {metric_name: value}
         self._counters: Dict[str, int] = defaultdict(int)
-        
+
         # Gauge metrics: {metric_name: value}
         self._gauges: Dict[str, float] = {}
-        
+
         # Timestamp of last reset
         self._reset_time = time.time()
-    
-    def record_operation(
-        self,
-        operation: str,
-        duration_ms: float,
-        success: bool,
-        **kwargs
-    ) -> None:
+
+    def record_operation(self, operation: str, duration_ms: float, success: bool, **kwargs) -> None:
         """Record an operation metric.
-        
+
         Args:
             operation: Operation name
             duration_ms: Operation duration in milliseconds
@@ -76,15 +70,15 @@ class MetricsCollector(IMetricsCollector):
         with self._lock:
             metrics = self._operations[operation]
             metrics["durations"].append(duration_ms)
-            
+
             if success:
                 metrics["successes"] += 1
             else:
                 metrics["failures"] += 1
-    
+
     def increment_counter(self, metric: str, value: int = 1, **kwargs) -> None:
         """Increment a counter metric.
-        
+
         Args:
             metric: Metric name
             value: Increment value (default: 1)
@@ -92,10 +86,10 @@ class MetricsCollector(IMetricsCollector):
         """
         with self._lock:
             self._counters[metric] += value
-    
+
     def record_gauge(self, metric: str, value: float, **kwargs) -> None:
         """Record a gauge metric.
-        
+
         Args:
             metric: Metric name
             value: Gauge value
@@ -103,10 +97,10 @@ class MetricsCollector(IMetricsCollector):
         """
         with self._lock:
             self._gauges[metric] = value
-    
+
     def get_metrics(self) -> Dict[str, Any]:
         """Get all collected metrics.
-        
+
         Returns:
             Dictionary with all metrics including aggregations
         """
@@ -116,7 +110,7 @@ class MetricsCollector(IMetricsCollector):
             for operation, metrics in self._operations.items():
                 durations = metrics["durations"]
                 total_calls = metrics["successes"] + metrics["failures"]
-                
+
                 if durations:
                     avg_duration = sum(durations) / len(durations)
                     min_duration = min(durations)
@@ -126,11 +120,9 @@ class MetricsCollector(IMetricsCollector):
                 else:
                     avg_duration = min_duration = max_duration = 0.0
                     p95_duration = p99_duration = 0.0
-                
-                success_rate = (
-                    metrics["successes"] / total_calls if total_calls > 0 else 0.0
-                )
-                
+
+                success_rate = metrics["successes"] / total_calls if total_calls > 0 else 0.0
+
                 operations_summary[operation] = {
                     "total_calls": total_calls,
                     "successes": metrics["successes"],
@@ -142,26 +134,26 @@ class MetricsCollector(IMetricsCollector):
                     "p95_duration_ms": p95_duration,
                     "p99_duration_ms": p99_duration,
                 }
-            
+
             return {
                 "operations": operations_summary,
                 "counters": dict(self._counters),
                 "gauges": dict(self._gauges),
                 "collection_period_seconds": time.time() - self._reset_time,
             }
-    
+
     def get_operation_metrics(self, operation: str) -> Dict[str, Any]:
         """Get metrics for a specific operation.
-        
+
         Args:
             operation: Operation name
-            
+
         Returns:
             Metrics for the operation
         """
         metrics = self.get_metrics()
         return metrics["operations"].get(operation, {})
-    
+
     def reset(self) -> None:
         """Reset all metrics."""
         with self._lock:
@@ -169,21 +161,21 @@ class MetricsCollector(IMetricsCollector):
             self._counters.clear()
             self._gauges.clear()
             self._reset_time = time.time()
-    
+
     @staticmethod
     def _calculate_percentile(values: List[float], percentile: int) -> float:
         """Calculate percentile of values.
-        
+
         Args:
             values: List of values
             percentile: Percentile to calculate (0-100)
-            
+
         Returns:
             Percentile value
         """
         if not values:
             return 0.0
-        
+
         sorted_values = sorted(values)
         n = len(sorted_values)
         position = (percentile / 100.0) * (n - 1)
@@ -194,28 +186,22 @@ class MetricsCollector(IMetricsCollector):
 
 class NoOpMetricsCollector(IMetricsCollector):
     """No-op metrics collector that does nothing.
-    
+
     Useful for disabling metrics collection without changing code.
     """
-    
-    def record_operation(
-        self,
-        operation: str,
-        duration_ms: float,
-        success: bool,
-        **kwargs
-    ) -> None:
+
+    def record_operation(self, operation: str, duration_ms: float, success: bool, **kwargs) -> None:
         """Record an operation metric (no-op)."""
         pass
-    
+
     def increment_counter(self, metric: str, value: int = 1, **kwargs) -> None:
         """Increment a counter metric (no-op)."""
         pass
-    
+
     def record_gauge(self, metric: str, value: float, **kwargs) -> None:
         """Record a gauge metric (no-op)."""
         pass
-    
+
     def get_metrics(self) -> Dict[str, Any]:
         """Get all collected metrics (empty)."""
         return {

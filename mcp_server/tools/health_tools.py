@@ -40,18 +40,18 @@ def get_health_tools() -> list[Tool]:
 
 async def handle_health_check(arguments: Dict[str, Any]) -> Dict[str, Any]:
     """Handle health check request.
-    
+
     Args:
         arguments: Arguments containing optional flags for included information
-        
+
     Returns:
         Dictionary with health status and optional detailed information
     """
     include_metrics = arguments.get("include_metrics", True)
     include_cache_stats = arguments.get("include_cache_stats", True)
-    
+
     start_time = time.time()
-    
+
     # Basic health status
     health_status = {
         "status": "healthy",
@@ -59,7 +59,7 @@ async def handle_health_check(arguments: Dict[str, Any]) -> Dict[str, Any]:
         "server": "PPTX MCP Server",
         "version": "1.0.0",
     }
-    
+
     # Check configuration
     try:
         config = get_config()
@@ -72,7 +72,7 @@ async def handle_health_check(arguments: Dict[str, Any]) -> Dict[str, Any]:
         health_status["status"] = "unhealthy"
         health_status["errors"] = health_status.get("errors", [])
         health_status["errors"].append(f"Config error: {str(e)}")
-    
+
     # Check cache if requested
     if include_cache_stats:
         try:
@@ -85,7 +85,7 @@ async def handle_health_check(arguments: Dict[str, Any]) -> Dict[str, Any]:
                 health_status["cache"] = {"status": "not initialized"}
         except Exception as e:
             health_status["cache"] = {"error": str(e)}
-    
+
     # Include metrics if requested
     if include_metrics:
         try:
@@ -97,9 +97,9 @@ async def handle_health_check(arguments: Dict[str, Any]) -> Dict[str, Any]:
                 health_status["metrics"] = {"status": "not initialized"}
         except Exception as e:
             health_status["metrics"] = {"error": str(e)}
-    
+
     # Add response time
     response_time_ms = (time.time() - start_time) * 1000
     health_status["response_time_ms"] = round(response_time_ms, 2)
-    
+
     return health_status

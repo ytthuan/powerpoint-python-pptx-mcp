@@ -33,7 +33,10 @@ def _notes_part_for_slide(zip_in: zipfile.ZipFile, slide_no: int) -> str | None:
 
     root = etree.fromstring(rel_xml)
     for rel in root.findall("rel:Relationship", namespaces=_REL_NS):
-        if rel.get("Type") == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide":
+        if (
+            rel.get("Type")
+            == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide"
+        ):
             target = rel.get("Target")
             if not target:
                 return None
@@ -74,9 +77,10 @@ def _set_notes_text(notes_xml: bytes, notes_text: str) -> bytes:
 
     # Clean the text
     import re
+
     cleaned_text = notes_text.replace("\r\n", "\n").replace("\r", "\n")
-    cleaned_text = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1f]', '\n', cleaned_text)
-    
+    cleaned_text = re.sub(r"[\x00-\x08\x0b-\x0c\x0e-\x1f]", "\n", cleaned_text)
+
     lines = cleaned_text.split("\n")
     if len(lines) == 0:
         lines = [""]
@@ -84,18 +88,20 @@ def _set_notes_text(notes_xml: bytes, notes_text: str) -> bytes:
     for line in lines:
         p_el = etree.Element(f"{{{_XML_NS['a']}}}p")
         r_el = etree.SubElement(p_el, f"{{{_XML_NS['a']}}}r")
-        
+
         # Check if this line should be bold
         line_stripped = line.strip()
-        is_bold = line_stripped.startswith("- Short version:") or line_stripped.startswith("- Original:")
-        
+        is_bold = line_stripped.startswith("- Short version:") or line_stripped.startswith(
+            "- Original:"
+        )
+
         if is_bold:
             r_pr = etree.SubElement(r_el, f"{{{_XML_NS['a']}}}rPr")
             r_pr.set("b", "1")
-        
+
         t_el = etree.SubElement(r_el, f"{{{_XML_NS['a']}}}t")
         t_el.set("{http://www.w3.org/XML/1998/namespace}space", "preserve")
-        clean_line = ''.join(char for char in line if ord(char) >= 32 or char in '\n\r\t')
+        clean_line = "".join(char for char in line if ord(char) >= 32 or char in "\n\r\t")
         t_el.text = clean_line
         tx_body.append(p_el)
 
@@ -105,7 +111,7 @@ def _set_notes_text(notes_xml: bytes, notes_text: str) -> bytes:
 def _iter_updates(payload: dict) -> List[Tuple[int, str]]:
     """Yield (slide_number, notes_text) updates from supported JSON shapes."""
     updates = []
-    
+
     if isinstance(payload, dict) and "slides" in payload and isinstance(payload["slides"], list):
         for item in payload["slides"]:
             if not isinstance(item, dict):
@@ -179,5 +185,3 @@ def update_notes_safe_in_place(pptx_in: Path, updates: List[Tuple[int, str]]) ->
                 tmp_file.unlink()
             except Exception:
                 pass
-
-

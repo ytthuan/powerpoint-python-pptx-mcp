@@ -13,15 +13,15 @@ def list_pptx_resources(base_path: str | Path = ".") -> List[Resource]:
     """List all PPTX files as resources."""
     base_path = Path(base_path)
     resources = []
-    
+
     # Search for PPTX files
     pptx_files = list(base_path.rglob("*.pptx"))
-    
+
     for pptx_path in pptx_files:
         try:
             handler = PPTXHandler(pptx_path)
             info = handler.get_presentation_info()
-            
+
             resource_uri = f"pptx://{pptx_path.resolve()}"
             resources.append(
                 Resource(
@@ -34,7 +34,7 @@ def list_pptx_resources(base_path: str | Path = ".") -> List[Resource]:
         except Exception:
             # Skip invalid PPTX files
             continue
-    
+
     return resources
 
 
@@ -42,17 +42,17 @@ def get_pptx_resource(uri: str) -> Dict[str, Any]:
     """Get resource content for a PPTX file."""
     if not uri.startswith("pptx://"):
         raise ValueError(f"Invalid PPTX resource URI: {uri}")
-    
+
     # Extract file path from URI
     file_path = uri[7:]  # Remove "pptx://" prefix
     pptx_path = Path(file_path)
-    
+
     if not pptx_path.exists():
         raise FileNotFoundError(f"PPTX file not found: {pptx_path}")
-    
+
     handler = PPTXHandler(pptx_path)
     info = handler.get_presentation_info()
-    
+
     # Return metadata as JSON
     return {
         "uri": uri,
@@ -61,4 +61,3 @@ def get_pptx_resource(uri: str) -> Dict[str, Any]:
         "slide_count": info["slide_count"],
         "slide_size": info["slide_size"],
     }
-

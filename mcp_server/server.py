@@ -76,7 +76,7 @@ async def list_tools() -> list[Tool]:
 async def call_tool(name: str, arguments: dict) -> dict:
     """Handle tool calls."""
     logger.info(f"Tool call: {name} with arguments: {arguments}")
-    
+
     try:
         # Read tools
         if name == "read_slide_content":
@@ -89,7 +89,7 @@ async def call_tool(name: str, arguments: dict) -> dict:
             return await handle_read_presentation_info(arguments)
         elif name == "read_slides_metadata":
             return await handle_read_slides_metadata(arguments)
-        
+
         # Edit tools
         elif name == "update_slide_text":
             return await handle_update_slide_text(arguments)
@@ -103,7 +103,7 @@ async def call_tool(name: str, arguments: dict) -> dict:
             return await handle_replace_slide_content(arguments)
         elif name == "update_slide_content":
             return await handle_update_slide_content(arguments)
-        
+
         # Slide management tools
         elif name == "add_slide":
             return await handle_add_slide(arguments)
@@ -115,7 +115,7 @@ async def call_tool(name: str, arguments: dict) -> dict:
             return await handle_change_slide_layout(arguments)
         elif name == "set_slide_visibility":
             return await handle_set_slide_visibility(arguments)
-        
+
         # Notes tools
         elif name == "read_notes":
             return await handle_read_notes(arguments)
@@ -129,14 +129,14 @@ async def call_tool(name: str, arguments: dict) -> dict:
             return await handle_format_notes_structure(arguments)
         elif name == "process_notes_workflow":
             return await handle_process_notes_workflow(arguments)
-        
+
         # Text replacement tools
         elif name == "replace_text":
             return await handle_replace_text(arguments)
-        
+
         else:
             raise ValueError(f"Unknown tool: {name}")
-    
+
     except Exception as e:
         logger.error(f"Error executing tool {name}: {e}", exc_info=True)
         raise
@@ -151,12 +151,12 @@ async def list_resources() -> list[Resource]:
         Path.cwd() / "src" / "deck",
         Path.cwd() / "src",
     ]
-    
+
     resources = []
     for search_path in search_paths:
         if search_path.exists():
             resources.extend(list_pptx_resources(search_path))
-    
+
     return resources
 
 
@@ -164,10 +164,11 @@ async def list_resources() -> list[Resource]:
 async def read_resource(uri: str) -> str:
     """Read resource content."""
     logger.info(f"Reading resource: {uri}")
-    
+
     try:
         resource_data = get_pptx_resource(uri)
         import json
+
         return json.dumps(resource_data, indent=2)
     except Exception as e:
         logger.error(f"Error reading resource {uri}: {e}", exc_info=True)
@@ -177,7 +178,7 @@ async def read_resource(uri: str) -> str:
 async def main():
     """Main entry point for MCP server."""
     logger.info("Starting PPTX MCP Server...")
-    
+
     async with stdio_server() as (read_stream, write_stream):
         await server.run(
             read_stream,
@@ -188,4 +189,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-

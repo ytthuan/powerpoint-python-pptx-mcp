@@ -163,7 +163,7 @@ class TestGlobalConfig:
         custom_config = Config()
         custom_config.environment = Environment.PRODUCTION
         set_config(custom_config)
-        
+
         retrieved_config = get_config()
         assert retrieved_config is custom_config
         assert retrieved_config.environment == Environment.PRODUCTION
@@ -179,6 +179,6 @@ class TestGlobalConfig:
         """Test set_config validates configuration."""
         invalid_config = Config()
         invalid_config.security.max_file_size = -1
-        
+
         with pytest.raises(ValueError):
             set_config(invalid_config)
