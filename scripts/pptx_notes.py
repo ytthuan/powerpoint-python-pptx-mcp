@@ -1,6 +1,23 @@
 #!/usr/bin/env python3
 """Export and update PowerPoint speaker notes (Notes Slide) in a .pptx.
 
+⚠️ DEPRECATION WARNING ⚠️
+==========================
+This script is DEPRECATED and will be removed in a future version.
+Please use the MCP server tools instead for all PPTX operations.
+
+Migration guide: See MIGRATION.md for instructions on transitioning to MCP tools.
+
+The MCP server provides:
+- Better error handling and validation
+- Consistent API across all operations
+- Enhanced security features
+- Structured logging and monitoring
+- Type safety and comprehensive testing
+
+For MCP server usage, see README.md and AGENTS.md documentation.
+==========================
+
 Uses python-pptx: https://python-pptx.readthedocs.io/en/latest/user/notes.html
 
 Design goal: only modify slide notes; do not alter slide shapes/content.
@@ -12,13 +29,44 @@ import argparse
 import datetime as _dt
 import json
 import os
+import sys
 import tempfile
+import warnings
 import zipfile
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Tuple
 
 from lxml import etree
 from pptx import Presentation
+
+
+# Show deprecation warning
+def _show_deprecation_warning():
+    """Display deprecation warning to users."""
+    warning_msg = """
+╔═══════════════════════════════════════════════════════════════════════╗
+║                      ⚠️  DEPRECATION WARNING ⚠️                        ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  This script (pptx_notes.py) is DEPRECATED and will be removed       ║
+║  in a future version.                                                  ║
+║                                                                        ║
+║  Please use the MCP server tools instead:                             ║
+║  - Better error handling and validation                               ║
+║  - Consistent API across all operations                               ║
+║  - Enhanced security features                                         ║
+║  - Structured logging and monitoring                                  ║
+║                                                                        ║
+║  See MIGRATION.md for migration instructions.                         ║
+║  See README.md for MCP server usage.                                  ║
+╚═══════════════════════════════════════════════════════════════════════╝
+"""
+    print(warning_msg, file=sys.stderr)
+    warnings.warn(
+        "pptx_notes.py is deprecated. Use MCP server tools instead. "
+        "See MIGRATION.md for migration guide.",
+        DeprecationWarning,
+        stacklevel=2
+    )
 
 
 def _slide_title(slide) -> str:
@@ -308,9 +356,17 @@ def _default_out_path(pptx_in: Path) -> Path:
 
 
 def main(argv: List[str] | None = None) -> int:
+    """Main entry point for pptx_notes script.
+    
+    ⚠️ DEPRECATED: Use MCP server tools instead. See MIGRATION.md
+    """
+    # Show deprecation warning
+    _show_deprecation_warning()
+    
     parser = argparse.ArgumentParser(
         prog="pptx_notes",
-        description="Read/update PowerPoint slide speaker notes (.pptx) using python-pptx.",
+        description="Read/update PowerPoint slide speaker notes (.pptx) using python-pptx. "
+                    "⚠️ DEPRECATED - Use MCP server tools instead.",
     )
     sub = parser.add_subparsers(dest="cmd", required=True)
 
