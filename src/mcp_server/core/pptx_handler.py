@@ -94,16 +94,32 @@ class PPTXHandler:
         """
         validate_slide_number(slide_number, self.get_slide_count())
         slide = self.presentation.slides[slide_number - 1]
-        # The 'show' attribute is on the <sld> element, not on <sldId>
-        # '0' means hidden, missing or '1' means visible
-        # Handle both string and potential integer/None cases
+
+        # Check for 'show' attribute in two locations:
+        # 1. On the <p:sld> element (the slide part)
+        # 2. On the <p:sldId> element in presentation.xml (standard PowerPoint)
+
+        # Check location 1: <p:sld> element
         show_attr = slide.element.get("show")
-        if show_attr is None:
-            return False  # Missing attribute means visible
-        # Convert to string and check - can be '0', 0, '1', 1, etc.
-        show_value = str(show_attr).strip()
-        # Check for '0' (hidden) - after str() conversion, 0 becomes '0'
-        return show_value == "0"
+        if show_attr is not None:
+            if str(show_attr).strip() == "0":
+                return True
+
+        # Check location 2: <p:sldId> element
+        try:
+            # prs.slides._sldIdLst is the list of <p:sldId> elements
+            sld_id_lst = self.presentation.slides._sldIdLst
+            if slide_number - 1 < len(sld_id_lst):
+                sld_id_element = sld_id_lst[slide_number - 1]
+                show_attr = sld_id_element.get("show")
+                if show_attr is not None:
+                    if str(show_attr).strip() == "0":
+                        return True
+        except (AttributeError, IndexError, ValueError):
+            # Fallback if internals change or are inaccessible
+            pass
+
+        return False
 
     def set_slide_hidden(self, slide_number: int, hidden: bool):
         """Set slide visibility.
@@ -114,13 +130,29 @@ class PPTXHandler:
         """
         validate_slide_number(slide_number, self.get_slide_count())
         slide = self.presentation.slides[slide_number - 1]
-        # The 'show' attribute is on the <sld> element, not on <sldId>
+
+        # Set on both locations for maximum compatibility
         if hidden:
+            # Set on <p:sld>
             slide.element.set("show", "0")
+            # Set on <p:sldId>
+            try:
+                sld_id_lst = self.presentation.slides._sldIdLst
+                sld_id_lst[slide_number - 1].set("show", "0")
+            except (AttributeError, IndexError):
+                pass
         else:
-            # Remove the show attribute to restore default (visible)
+            # Remove from <p:sld>
             if "show" in slide.element.attrib:
                 del slide.element.attrib["show"]
+            # Remove from <p:sldId>
+            try:
+                sld_id_lst = self.presentation.slides._sldIdLst
+                sld_id_element = sld_id_lst[slide_number - 1]
+                if "show" in sld_id_element.attrib:
+                    del sld_id_element.attrib["show"]
+            except (AttributeError, IndexError):
+                pass
 
         # Mark as modified
         self._is_modified = True
@@ -128,19 +160,11 @@ class PPTXHandler:
     def get_presentation_info(self) -> Dict[str, Any]:
         """Get presentation metadata."""
         slide_count = self.get_slide_count()
-        visible_count = 0
-        for idx in range(slide_count):
-            slide = self.presentation.slides[idx]
-            # The 'show' attribute is on the <sld> element, not on <sldId>
-            # '0' means hidden, missing or '1' means visible
-            show_attr = slide.element.get("show")
-            if show_attr is None:
-                visible_count += 1  # Missing attribute means visible
-            else:
-                show_value = str(show_attr).strip()
-                if show_value != "0":
-                    visible_count += 1
-        hidden_count = slide_count - visible_count
+        hidden_count = 0
+        for i in range(1, slide_count + 1):
+            if self.is_slide_hidden(i):
+                hidden_count += 1
+        visible_count = slide_count - hidden_count
 
         return {
             "file_path": str(self.pptx_path),
@@ -311,30 +335,21 @@ class PPTXHandler:
         """
         slides_metadata = []
         slide_count = self.get_slide_count()
-        self.presentation.slides._sldIdLst
 
-        for i in range(slide_count):
-            # Check visibility directly without validation overhead
-            slide = self.presentation.slides[i]
-            # The 'show' attribute is on the <sld> element, not on <sldId>
-            show_attr = slide.element.get("show")
-            if show_attr is None:
-                is_hidden = False  # Missing attribute means visible
-            else:
-                show_value = str(show_attr).strip()
-                is_hidden = show_value == "0"
+        for i in range(1, slide_count + 1):
+            is_hidden = self.is_slide_hidden(i)
 
             if not include_hidden and is_hidden:
                 continue
 
-            slide = self.presentation.slides[i]
+            slide = self.presentation.slides[i - 1]
             title = ""
             if slide.shapes.title:
                 title = slide.shapes.title.text
 
             slides_metadata.append(
                 {
-                    "slide_number": i + 1,  # Convert to 1-indexed
+                    "slide_number": i,
                     "title": title,
                     "hidden": is_hidden,
                     "slide_id": slide.slide_id,

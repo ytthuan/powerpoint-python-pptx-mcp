@@ -19,6 +19,12 @@ from mcp_server.utils.validators import (
 )
 
 
+from mcp_server.exceptions import (
+    InvalidSlideNumberError,
+    ValidationError,
+)
+
+
 class TestSlideRangeParsing:
     """Test slide range parsing functionality."""
     
@@ -83,12 +89,12 @@ class TestSlideNumbersValidation:
     
     def test_validate_slide_numbers_out_of_range(self):
         """Test slide number out of range."""
-        with pytest.raises(ValueError, match="Slide number .* exceeds total slides"):
+        with pytest.raises(InvalidSlideNumberError, match="Invalid slide number: 15. Must be between 1 and 10"):
             validate_slide_numbers([1, 2, 15], max_slides=10)
     
     def test_validate_slide_numbers_negative(self):
         """Test negative slide number."""
-        with pytest.raises(ValueError, match="Slide number must be >= 1"):
+        with pytest.raises(InvalidSlideNumberError, match="Invalid slide number: -1. Must be between 1 and 10"):
             validate_slide_numbers([1, -1, 3], max_slides=10)
 
 
@@ -227,7 +233,7 @@ class TestBatchOperations:
         })
         
         assert result["success"] is False
-        assert "exceeds total slides" in result["error"]
+        assert "Must be between 1 and 5" in result["error"]
     
     @pytest.mark.asyncio
     async def test_update_notes_batch_in_place(self, temp_pptx_path):

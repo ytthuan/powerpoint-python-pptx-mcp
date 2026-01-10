@@ -1,697 +1,321 @@
-# PowerPoint PPTX Notes Automation
+# PowerPoint MCP Server
 
-A Python project for building automated processes for PowerPoint speaker notes processing, translation, and management using Azure Foundry Models Response API.
-
-> **⚠️ IMPORTANT:** The `scripts/` directory is **DEPRECATED**. Please use the **MCP Server tools** for all PPTX operations. See [MIGRATION.md](MIGRATION.md) for migration instructions.
+A Model Context Protocol (MCP) server for PowerPoint (PPTX) file manipulation and automated speaker notes processing. Enables AI agents to interact with PowerPoint presentations through natural language commands.
 
 ## Features
 
-- **MCP Server**: Model Context Protocol server for PPTX manipulation via AI agents
-- **Automated Note Processing**: Process PPTX speaker notes with AI-powered translation and summarization
-- **Multi-language Support**: Translate between Vietnamese and English, with automatic language detection
-- **Dual Version Generation**: Automatically create both short (30-50% length) and full versions of speaker notes
-- **Azure Foundry Integration**: Uses Azure Foundry Models Response API for high-quality AI processing
-- **Safe PPTX Editing**: Preserves slide structure, animations, and transitions using zip-based editing
-- **Parallel Processing**: Process multiple slides concurrently for faster execution
-- **Status Tracking**: Automatic progress tracking with resume capability for interrupted runs
-- **Batch Processing**: Process entire presentations or specific slides
-- **Enhanced Security**: Input validation, workspace boundaries, file size limits
-- **Structured Logging**: Correlation IDs, JSON logging, performance monitoring
-
-## Project Structure
-
-```
-.
-├── mcp_server/                 # MCP server implementation (USE THIS)
-│   ├── core/                   # Core PPTX handling and safe editing
-│   ├── tools/                  # MCP tools (read, edit, slide, notes)
-│   ├── resources/              # MCP resources (PPTX file discovery)
-│   ├── utils/                  # Validators and utilities
-│   ├── config.py              # Configuration management
-│   ├── exceptions.py          # Custom exception hierarchy
-│   ├── logging_config.py      # Structured logging
-│   └── server.py              # Main MCP server entry point
-├── scripts/                    # ⚠️ DEPRECATED - Use MCP tools instead
-│   ├── pptx_notes.py          # DEPRECATED: Use MCP notes_tools
-│   └── update_notes_format.py  # DEPRECATED: Use MCP process_notes_workflow
-├── docker/                     # Docker configuration
-│   ├── Dockerfile             # Docker image definition
-│   └── docker-compose.yml     # Docker Compose configuration
-├── src/
-│   ├── deck/                   # PPTX files and JSON dumps
-│   ├── notes/                  # Documentation and notes
-│   └── references/             # Reference materials
-├── requirements.txt            # Python dependencies
-├── mcp_config.json            # MCP server metadata
-├── MIGRATION.md                # Migration guide from scripts to MCP tools
-├── AGENTS.md                   # Agent instructions and guidelines
-└── README.md                   # This file
-```
-
-## Installation
-
-### Prerequisites
-
-- Python 3.8 or higher
-- Azure subscription with Foundry Models access (for automated note processing)
-- Azure AI Project endpoint and model deployment (for automated note processing)
-- Docker and Docker Compose (optional, for Docker setup)
-
-## Setup
-
-### Option 1: Virtual Environment Setup
-
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd powerpoint-python-pptx-mcp
-   ```
-
-2. **Create virtual environment**:
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   ```
-
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Verify installation**:
-   ```bash
-   python3 -m mcp_server.server --help
-   ```
-   
-   Or test the server starts correctly:
-   ```bash
-   python3 -c "from mcp_server.server import server; print('✓ Server ready')"
-   ```
-
-5. **Configure Azure credentials** (for automated note processing):
-   
-   Create a `.env` file in the project root:
-   ```bash
-   AZURE_AI_PROJECT_ENDPOINT=https://YOUR-RESOURCE-NAME.services.ai.azure.com/api/projects/YOUR_PROJECT_NAME
-   MODEL_DEPLOYMENT_NAME=your-deployment-name
-   ```
-   
-   Or set environment variables:
-   ```bash
-   export AZURE_AI_PROJECT_ENDPOINT="https://YOUR-RESOURCE-NAME.services.ai.azure.com/api/projects/YOUR_PROJECT_NAME"
-   export MODEL_DEPLOYMENT_NAME="your-deployment-name"
-   ```
-
-   **Note**: The script uses `DefaultAzureCredential()` for authentication, which supports:
-   - Azure CLI authentication (`az login`)
-   - Managed Identity (when running on Azure)
-   - Environment variables
-   - Visual Studio Code authentication
-   - And more (see [Azure Identity documentation](https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.defaultazurecredential))
-
-### Option 2: Docker Setup
-
-1. **Build the Docker image**:
-   ```bash
-   docker build -f docker/Dockerfile -t pptx-mcp-server:latest .
-   ```
-
-2. **Run with Docker Compose** (recommended):
-   ```bash
-   docker-compose -f docker/docker-compose.yml up -d
-   ```
-
-   This will:
-   - Build the image if needed
-   - Mount `src/deck` directory for PPTX file access
-   - Keep the container running for MCP connections
-
-3. **Run standalone Docker container**:
-   ```bash
-   docker run -it --rm \
-     -v $(pwd)/src/deck:/data/pptx:rw \
-     pptx-mcp-server:latest
-   ```
-
-4. **Verify Docker setup**:
-   ```bash
-   docker exec pptx-mcp-server python -c "from mcp_server.server import server; print('✓ Server ready')"
-   ```
-
-## Connecting to MCP Server
-
-The MCP server exposes PPTX manipulation capabilities as tools and resources that can be used by AI agents (like Cursor, Claude Desktop, VSCode, etc.).
-
-### For VSCode (with Docker Compose)
-
-📖 **See [VSCODE_SETUP.md](VSCODE_SETUP.md) for detailed step-by-step instructions.**
-
-Quick setup:
-1. Start Docker Compose: `docker-compose -f docker/docker-compose.yml up -d`
-2. Configure VSCode settings (see `VSCODE_SETUP.md`)
-3. Restart VSCode and open Copilot Chat
-
-### For Cursor IDE
-
-1. **Open Cursor Settings** → **Features** → **Model Context Protocol**
-
-2. **Add MCP Server Configuration**:
-
-   **For Virtual Environment**:
-   ```json
-   {
-     "mcpServers": {
-       "pptx": {
-         "command": "python3",
-         "args": ["-m", "mcp_server.server"],
-         "cwd": "/path/to/powerpoint-python-pptx-mcp",
-         "env": {}
-       }
-     }
-   }
-   ```
-
-   **For Docker**:
-   ```json
-   {
-     "mcpServers": {
-       "pptx": {
-         "command": "docker",
-         "args": [
-           "run", "-i", "--rm",
-           "-v", "/path/to/powerpoint-python-pptx-mcp/src/deck:/data/pptx:rw",
-           "pptx-mcp-server:latest"
-         ],
-         "env": {}
-       }
-     }
-   }
-   ```
-
-   **For Docker Compose** (requires container to be running):
-   ```json
-   {
-     "mcpServers": {
-       "pptx": {
-         "command": "docker-compose",
-         "args": [
-           "-f", "/path/to/powerpoint-python-pptx-mcp/docker/docker-compose.yml",
-           "exec", "-T", "pptx-mcp-server",
-           "python", "-m", "mcp_server.server"
-         ],
-         "cwd": "/path/to/powerpoint-python-pptx-mcp",
-         "env": {}
-       }
-     }
-   }
-   ```
-
-3. **Restart Cursor** to load the MCP server
-
-4. **Verify Connection**: The MCP server should appear in Cursor's MCP status, and you should see available tools like:
-   - `read_slide_content`
-   - `read_slide_text`
-   - `update_slide_text`
-   - `read_notes`
-   - `update_notes`
-   - And more...
-
-### For Claude Desktop
-
-1. **Edit Claude Desktop Configuration**:
-   
-   **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-   
-   **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-
-2. **Add MCP Server** (same JSON format as Cursor above)
-
-3. **Restart Claude Desktop**
-
-### For Other MCP Clients
-
-The server uses the standard MCP protocol over stdio. Any MCP-compatible client can connect by:
-
-1. **Starting the server process** with stdio communication
-2. **Sending JSON-RPC messages** over stdin/stdout
-3. **Receiving responses** on stdout
-
-Example connection test:
-```bash
-# The server communicates via stdio, so it's typically launched by the MCP client
-# But you can test it manually:
-echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' | python3 -m mcp_server.server
-```
-
-### Available MCP Tools
-
-Once connected, the following tools are available:
-
-**Read Tools**:
-- `read_slide_content` - Get comprehensive slide content (text, shapes, images)
-- `read_slide_text` - Extract all text from a slide
-- `read_slide_images` - Get image information from a slide
-- `read_presentation_info` - Get presentation metadata
-
-**Edit Tools**:
-- `update_slide_text` - Update text in a shape
-- `replace_slide_image` - Replace an image on a slide
-- `add_text_box` - Add a new text box
-- `add_image` - Add a new image
-
-**Slide Management**:
-- `add_slide` - Add a new slide
-- `delete_slide` - Delete a slide
-- `duplicate_slide` - Duplicate a slide
-- `change_slide_layout` - Change slide layout
-
-**Notes Tools**:
-- `read_notes` - Read speaker notes from slide(s)
-- `update_notes` - Update speaker notes (safe zip-based editing)
-- `format_notes_structure` - Format notes into short/original structure
-
-**Text Replacement Tools**:
-- `replace_text` - Replace text in slide content or speaker notes with optional regex support
-  - Supports both literal text and regex patterns with capture groups
-  - Can target slide notes or slide content (shapes)
-  - Optional dry-run mode to preview changes
-  - Supports regex flags (IGNORECASE, MULTILINE, DOTALL)
-  - Can limit replacements by slide number or shape ID
-  - Safe zip-based editing for notes (preserves animations/transitions)
-
-### Available MCP Resources
-
-The server automatically discovers PPTX files in:
-- Current working directory
-- `src/deck/` directory
-- `src/` directory
-
-Resources are exposed with URI format: `pptx:///path/to/file.pptx`
-
-### Testing the MCP Server
-
-To verify the server is working correctly, use the test script:
-
-**Quick test (recommended)**:
-```bash
-python3 test_mcp_server.py --quick
-```
-
-This verifies:
-- ✅ All dependencies are installed
-- ✅ Server module can be imported
-- ✅ All 15 tools are properly registered
-
-**Full test (with MCP communication)**:
-```bash
-python3 test_mcp_server.py
-```
-
-This tests:
-- ✅ Server initialization via JSON-RPC
-- ✅ Tool listing via MCP protocol
-- ✅ Full stdio communication
-
-**Note**: When you run `python3 -m mcp_server.server` directly, you'll see:
-```
-2026-01-06 21:56:48,938 - __main__ - INFO - Starting PPTX MCP Server..
-```
-
-This is **normal** - the server is working correctly! It's waiting for JSON-RPC messages on stdin. The server is designed to be started by MCP clients (like Cursor), not run directly in a terminal.
-
-### Troubleshooting MCP Connection
-
-1. **Server not starting**:
-   - Verify Python environment: `python3 -c "from mcp_server.server import server; print('✓ OK')"`
-   - Check dependencies: `pip list | grep mcp`
-   - Run test script: `python3 test_mcp_server.py --quick`
-   - Review logs for errors
-
-2. **Tools not appearing**:
-   - Ensure MCP server is properly configured in client settings
-   - Restart the client application
-   - Check that the server process is running
-   - Verify with test script: `python3 test_mcp_server.py --quick`
-
-3. **File access issues**:
-   - Verify file paths are correct
-   - Check file permissions
-   - For Docker: ensure volumes are mounted correctly
-
-4. **Connection timeout**:
-   - Ensure the server starts quickly (check for slow imports)
-   - Verify stdio communication is working
-   - Check for blocking operations in server startup
-   - Test with: `python3 test_mcp_server.py`
-
-### Quick Start: Using the MCP Server
-
-Once connected to an MCP client (like Cursor), you can interact with PPTX files using natural language:
-
-**Example interactions**:
-- "Read the content of slide 5 from presentation.pptx"
-- "Update the notes on slide 3 with this text: ..."
-- "Add a new slide after slide 10"
-- "List all images in the presentation"
-- "Get all speaker notes from the presentation"
-- "Replace all instances of 'hello' with 'hi' in slide notes"
-- "Use regex to find and replace email addresses in slide content"
-- "Preview changes (dry-run) before replacing text in notes"
-
-The MCP server automatically:
-- Discovers PPTX files in common directories
-- Provides safe editing that preserves animations and transitions
-- Handles errors gracefully with informative messages
-
-For more details on available tools and their parameters, see:
-- **[MCP_AGENT_INSTRUCTIONS.md](MCP_AGENT_INSTRUCTIONS.md)** - Comprehensive guide for AI agents using the MCP server
-- **[AGENTS.md](AGENTS.md)** - Project-specific agent guidelines and workflows
-
-## Usage
-
-> **⚠️ DEPRECATION NOTICE:** The CLI scripts below are deprecated. Please use the **MCP Server tools** instead. See [MIGRATION.md](MIGRATION.md) for migration instructions.
-
-### Using MCP Server (Recommended)
-
-The MCP server provides all PPTX manipulation capabilities through a unified, secure interface. See:
-- **[MCP_AGENT_INSTRUCTIONS.md](MCP_AGENT_INSTRUCTIONS.md)** - Comprehensive MCP server guide
-- **[AGENTS.md](AGENTS.md)** - Agent-specific workflows
-- **[MIGRATION.md](MIGRATION.md)** - Migration from scripts to MCP tools
-
-**Example MCP tool usage:**
-```python
-# Read notes from all slides
-await handle_read_notes_batch({
-    "pptx_path": "presentation.pptx",
-    "slide_range": "1-100"
-})
-
-# Update notes in batch
-await handle_update_notes_batch({
-    "pptx_path": "presentation.pptx",
-    "updates": [...],
-    "output_path": "presentation.pptx"
-})
-
-# Process notes workflow (translation + summarization)
-await handle_process_notes_workflow({
-    "pptx_path": "presentation.pptx",
-    "output_language": "vietnamese",
-    "include_translation": True,
-    "include_summary": True
-})
-```
-
-### Legacy CLI Scripts (Deprecated)
-
-> **⚠️ WARNING:** These scripts will show deprecation warnings and will be removed in a future version.
-
-#### 1. Dump Notes to JSON (DEPRECATED)
-
-Extract all speaker notes from a PPTX file:
+- **MCP Server Integration**: Connect AI agents (Cursor, Claude Desktop, VSCode) to PowerPoint files
+- **Comprehensive PPTX Operations**: Read, edit, and manage slides, text, images, and speaker notes
+- **Automated Notes Processing**: AI-powered translation and summarization of speaker notes
+- **Batch Operations**: Process multiple slides efficiently in single atomic transactions
+- **Safe Editing**: Zip-based editing preserves animations, transitions, and slide structure
+- **Security**: Input validation, workspace boundaries, file size limits
+- **Performance**: LRU caching, metrics collection, structured logging
+
+## Quick Start
+
+### Installation
 
 ```bash
-python3 scripts/pptx_notes.py dump "path/to/presentation.pptx"
+# Clone repository
+git clone <repository-url>
+cd powerpoint-python-pptx-mcp
+
+# Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+python3 -m pip install -r requirements.txt
+python3 -m pip install -e .
 ```
 
-**Use MCP tool instead:** `read_notes_batch`
+### Running the MCP Server
 
-#### 2. Automated Processing with Azure Foundry Models (DEPRECATED)
-
-Process notes with automatic translation and summarization:
-
+**Local:**
 ```bash
-python3 scripts/update_notes_format.py \
-  --input "path/to/notes.json" \
-  --pptx "path/to/presentation.pptx" \
-  --output-language vietnamese
+python3 -m mcp_server.server
 ```
 
-**Use MCP tool instead:** `process_notes_workflow`
-
-**Options**:
-- `--input`: Input JSON file (default: `src/deck/current-notes-dump.json`)
-- `--output`: Output JSON file (default: same as input)
-- `--pptx`: PPTX file to update automatically after processing
-- `--output-language`: Target language (`vietnamese` or `english`, default: `vietnamese`)
-- `--endpoint`: Azure AI Project endpoint (or use `AZURE_AI_PROJECT_ENDPOINT` env var)
-- `--deployment-name`: Model deployment name (or use `MODEL_DEPLOYMENT_NAME` env var)
-- `--in-place`: Update PPTX in-place (default: creates new file with `.updated.pptx` suffix)
-- `--batch-size`: Number of slides to process in parallel (default: 5)
-- `--status-file`: Path to status tracking file (default: `input_file.status.json`)
-- `--resume`: Resume from status file, skipping already successful slides
-- `--dry-run`: Test processing without making API calls
-
-**Examples**:
-
-First activate the virtual environment:
+**Docker:**
 ```bash
-source .venv/bin/activate
-```
-Then run the following commands:
-```bash
-# Process notes and update PPTX automatically
-python3 scripts/update_notes_format.py \
-  --input src/deck/current-notes-dump.json \
-  --pptx "src/deck/presentation.pptx" \
-  --output-language vietnamese \
-  --in-place
-
-# Process with parallel batch (10 workers) and update PPTX automatically
-python3 scripts/update_notes_format.py \
-  --input src/deck/original-notes-backup.json \
-  --pptx "src/deck/Microsoft Fabric technical Slide Library.PPTX" \
-  --batch-size 10 \
-  --output-language vietnamese \
-  --in-place
-
-# Resume processing after interruption
-python3 scripts/update_notes_format.py \
-  --input src/deck/current-notes-dump.json \
-  --resume
-
-# Dry run to test without API calls
-python3 scripts/update_notes_format.py \
-  --input src/deck/current-notes-dump.json \
-  --dry-run \
-  --batch-size 3
+docker-compose -f docker/docker-compose.yml up -d
 ```
 
-#### 3. Manual Note Updates
+### Connecting AI Agents
 
-Apply manually edited notes to PPTX:
+#### Cursor IDE
 
-```bash
-python3 scripts/pptx_notes.py apply \
-  "path/to/presentation.pptx" \
-  "path/to/updates.json" \
-  --in-place \
-  --engine zip
-```
+Add to Cursor Settings → Features → Model Context Protocol:
 
-**Engines**:
-- `zip` (default): Safely edits only notes XML parts, preserves everything else
-- `python-pptx`: Rewrites entire PPTX (use only if needed)
-
-#### 4. Text Replacement with replace_text MCP Tool
-
-The `replace_text` tool provides flexible text replacement in both slide content and speaker notes.
-
-**Basic Usage (via MCP client)**:
-
-Replace literal text in speaker notes:
-```python
-# Example through AI agent/MCP client:
-# "Replace 'old text' with 'new text' in all slide notes"
-```
-
-Replace text with regex pattern:
-```python
-# "Use regex to replace 'hello (\w+)' with 'goodbye \1' in slide content"
-```
-
-**Key Features**:
-- **Target Selection**: Choose between `slide_notes` (speaker notes) or `slide_content` (text in shapes)
-- **Regex Support**: Use Python regex patterns with capture groups (e.g., `\1`, `\2`)
-- **Regex Flags**: Support for `IGNORECASE`, `MULTILINE`, `DOTALL`
-- **Scoping**: Optionally limit to specific slides or shapes
-- **Dry Run**: Preview changes before applying them
-- **Safe Editing**: Notes updates use zip-based editing to preserve animations/transitions
-
-**Parameters**:
-- `pptx_path` (required): Path to PPTX file
-- `target` (required): `"slide_notes"` or `"slide_content"`
-- `pattern` (required): Text or regex pattern to find
-- `replacement` (required): Replacement text (can use capture groups with regex)
-- `use_regex`: `true` for regex, `false` for literal text (default: `false`)
-- `regex_flags`: Array of flags like `["IGNORECASE", "MULTILINE"]`
-- `slide_number`: Optional slide number to limit scope
-- `shape_id`: Optional shape ID (only for `slide_content`)
-- `max_replacements`: Limit number of replacements (0 = unlimited)
-- `dry_run`: Preview changes without modifying file (default: `false`)
-- `in_place`: Update file in-place vs create copy (default: `true`)
-- `output_path`: Output path when `in_place` is `false`
-
-**Example Scenarios**:
-
-1. **Replace company name across all notes**:
-   - Pattern: `"ACME Corp"`
-   - Replacement: `"Contoso Ltd"`
-   - Target: `"slide_notes"`
-
-2. **Fix common typos with regex**:
-   - Pattern: `"teh\b"` (regex)
-   - Replacement: `"the"`
-   - Target: `"slide_content"`
-   - Flags: `["IGNORECASE"]`
-
-3. **Update email format with capture groups**:
-   - Pattern: `"([a-z]+)@oldomain.com"` (regex)
-   - Replacement: `"\1@newdomain.com"`
-   - Target: `"slide_content"`
-
-4. **Preview changes before applying**:
-   - Set `dry_run: true` to see what would change
-   - Review `changes` array in response
-   - Run again with `dry_run: false` to apply
-
-**Response Structure**:
 ```json
 {
-  "success": true,
-  "target": "slide_notes",
-  "pptx_path": "/path/to/file.pptx",
-  "slides_scanned": 10,
-  "slides_changed": 3,
-  "replacements_count": 5,
-  "affected_slides": [2, 5, 8],
-  "in_place": true
+  "mcpServers": {
+    "pptx": {
+      "command": "python3",
+      "args": ["-m", "mcp_server.server"],
+      "cwd": "/path/to/powerpoint-python-pptx-mcp"
+    }
+  }
 }
 ```
 
-**Note**: The `replace_text` tool automatically selects the appropriate engine based on the target:
-- For `target: "slide_notes"`: Uses safe zip-based editing to modify only notes XML parts, preserving slide structure, animations, and transitions
-- For `target: "slide_content"`: Uses python-pptx to update text in slide shapes
+#### Claude Desktop
 
-**Limitation**: When replacing text in slide content with multiple formatted runs (e.g., text with mixed bold/italic/colors), the replacement inherits only the formatting of the first run. The original mixed formatting is not preserved.
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows) with the same configuration.
 
-### Note Format
+#### GitHub Copilot
 
-The automated processing creates notes in this format:
+The repository includes a GitHub Agent Skill at `.github/skills/pptx-mcp-server/SKILL.md` that provides usage instructions for Copilot agents. The skill will be automatically discovered when working in this repository.
+
+Learn more: [About Agent Skills](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills)
+
+## Available Tools
+
+### Read Operations
+- `read_presentation_info` - Get presentation metadata (slide count, dimensions, visibility stats)
+- `read_slide_content` - Read comprehensive slide content (text, shapes, images)
+- `read_slide_text` - Extract all text from a slide
+- `read_slide_images` - Get image information
+- `read_slides_metadata` - Get metadata for all slides with visibility status
+
+### Notes Operations
+- `read_notes` - Read speaker notes from slide(s)
+- `read_notes_batch` - Read notes from multiple slides efficiently
+- `update_notes` - Update speaker notes (safe zip-based editing)
+- `update_notes_batch` - Update multiple slides atomically
+- `process_notes_workflow` - Complete workflow with validation and formatting
+- `format_notes_structure` - Format notes into short/original structure
+
+### Edit Operations
+- `update_slide_text` - Update text in shapes
+- `replace_slide_image` - Replace images
+- `add_text_box` - Add new text boxes
+- `add_image` - Add new images
+- `replace_text` - Find and replace text with regex support
+
+### Slide Management
+- `add_slide` - Add new slides
+- `delete_slide` - Delete slides
+- `duplicate_slide` - Duplicate slides
+- `change_slide_layout` - Change slide layouts
+- `set_slide_visibility` - Hide/show slides
+
+### Health & Monitoring
+- `health_check` - Server health and statistics
+
+## Usage Examples
+
+### Through AI Agent (Natural Language)
+
+Once connected to an MCP client, interact using natural language:
+
+- "Read the content from slide 5"
+- "Update the notes on slide 3 with this text..."
+- "Translate all speaker notes to Vietnamese"
+- "Hide slides 10-15"
+- "Replace all instances of 'Company A' with 'Company B'"
+
+### Programmatic Usage
+
+```python
+from mcp_server.tools.notes_tools import (
+    handle_read_notes_batch,
+    handle_process_notes_workflow
+)
+
+# Read notes from multiple slides
+notes = await handle_read_notes_batch({
+    "pptx_path": "presentation.pptx",
+    "slide_range": "1-10"
+})
+
+# Process with AI (translation, summarization)
+notes_data = []
+for slide in notes["slides"]:
+    # Your LLM processing here
+    translated = llm.translate(slide["notes"], target="vietnamese")
+    short = llm.summarize(translated)
+    
+    notes_data.append({
+        "slide_number": slide["slide_number"],
+        "short_text": short,
+        "original_text": translated
+    })
+
+# Apply all changes atomically
+result = await handle_process_notes_workflow({
+    "pptx_path": "presentation.pptx",
+    "notes_data": notes_data,
+    "in_place": True
+})
+```
+
+## Examples
+
+- `examples/demo_batch_operations.py` - batch notes workflow demo
+- `examples/demo_replace_text.py` - text replacement scenarios
+- `examples/demo_slide_visibility.py` - slide visibility management
+
+## Operational Scripts
+
+- `scripts/` - operational helpers; see `scripts/README.md` for usage
+
+## Architecture
 
 ```
-- Short version:
-[Brief summary covering only key points - 30-50% of original length]
-
-- Original:
-[Full translation/explanation with all details, examples, and explanations]
+┌─────────────────────────────────────────────────────────┐
+│                     MCP Server                          │
+└────────────────────┬────────────────────────────────────┘
+                     │
+┌────────────────────┴────────────────────────────────────┐
+│                    Tools Layer                          │
+│  (notes_tools, read_tools, edit_tools, slide_tools)     │
+└────────────────────┬────────────────────────────────────┘
+                     │
+┌────────────────────┴────────────────────────────────────┐
+│              Service Layer (Dependency Injection)       │
+│  PPTXHandler │ NotesEditor │ Validators │ Cache         │
+└────────────────────┬────────────────────────────────────┘
+                     │
+┌────────────────────┴────────────────────────────────────┐
+│             Cross-Cutting Concerns                      │
+│  Cache │ Logging │ Metrics │ Config │ Rate Limiting     │
+└─────────────────────────────────────────────────────────┘
 ```
 
-## How It Works
+### Separation of Concerns
 
-### Automated Processing Pipeline
+**MCP Server handles:**
+- PPTX file operations (read, write, edit)
+- File validation and security
+- Structure operations (formatting, layout)
 
-1. **Language Detection**: Automatically detects if notes are in Vietnamese or English
-2. **Long Version Creation**:
-   - If notes are English and target is Vietnamese → translates to Vietnamese
-   - If notes are Vietnamese and target is Vietnamese → skips translation
-   - Maintains conversational, speakable tone
-3. **Short Version Creation**:
-   - Generates concise summary (30-50% of original length)
-   - Preserves key points and main ideas
-   - Outputs in target language
-4. **PPTX Update**: Automatically updates PPTX file with formatted notes
+**AI Agent handles:**
+- Content generation (translation, summarization)
+- Language detection
+- Natural language understanding
+- Orchestrating tool calls
 
-### Parallel Processing & Status Tracking
+## Configuration
 
-The script processes slides in parallel batches for improved performance:
+Create a `.env` file or set environment variables:
 
-- **Parallel Execution**: Multiple slides are processed concurrently (configurable with `--batch-size`)
-- **Status Tracking**: A `.status.json` file tracks progress for each slide:
-  - `success`: Slide processed successfully
-  - `failed`: Processing failed (with error message)
-  - `processing`: Currently being processed
-  - `skipped`: Empty notes (skipped)
-- **Resume Capability**: Use `--resume` to continue from where you left off:
-  - Automatically skips already successful slides
-  - Retries failed slides
-  - Preserves existing output data
-- **Thread-Safe**: Status updates are thread-safe for parallel processing
+```bash
+# Environment
+MCP_ENV=production  # development, staging, or production
 
-### Azure Foundry Models Integration
+# Security
+MCP_MAX_FILE_SIZE=1048576000  # 1000MB
+MCP_WORKSPACE_DIRS=/path/to/presentations
+MCP_ENFORCE_WORKSPACE_BOUNDARY=true
 
-The project uses Azure Foundry Models Response API for:
-- **Translation**: High-quality translation between Vietnamese and English
-- **Summarization**: Intelligent extraction of key points while maintaining context
-- **Language Detection**: Automatic detection of input language
+# Performance
+MCP_ENABLE_CACHE=true
+MCP_CACHE_SIZE=100
 
-The script uses `DefaultAzureCredential()` for authentication, supporting multiple Azure authentication methods.
+# Logging
+MCP_LOG_LEVEL=INFO
+MCP_LOG_FILE=/var/log/mcp-server.log
 
-## Speaker Notes Style Guidelines
+# Azure AI (for automated note processing)
+AZURE_AI_PROJECT_ENDPOINT=https://...
+MODEL_DEPLOYMENT_NAME=gpt-4
+```
 
-When generating speaker notes:
+## Documentation
 
-- **Address audience as "anh/chị"** (Vietnamese)
-- **Use "chúng ta"** when referring to shared actions/goals
+- **[`.github/skills/pptx-mcp-server/SKILL.md`](.github/skills/pptx-mcp-server/SKILL.md)** - Agent Skill for Copilot and other agents
+- **[AGENTS.md](AGENTS.md)** - Quick reference and workflow examples
+- **[ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md)** - Technical architecture details
+- **[BATCH_OPERATIONS.md](docs/guides/BATCH_OPERATIONS.md)** - Batch processing documentation
+- **[SLIDE_VISIBILITY.md](docs/guides/SLIDE_VISIBILITY.md)** - Slide visibility feature guide
+- **[Migration Notes](docs/migration-notes.md)** - Repository layout changes
+
+## Testing
+
+```bash
+# Quick server test
+python3 tests/integration/test_mcp_server.py --quick
+
+# Full test suite
+python3 -m pytest tests/ -v
+
+# Specific feature tests
+python3 -m pytest tests/integration/test_batch_operations.py
+python3 -m pytest tests/integration/test_slide_visibility.py
+python3 -m pytest tests/integration/test_replace_text.py
+```
+
+## Vietnamese Speaker Notes Guidelines
+
+When generating Vietnamese speaker notes (for AI agents):
+
+- **Address audience as "anh/chị"**
+- **Use "chúng ta"** for shared actions/goals
 - **Keep sentences short and speakable**
-- **Maintain conversational, casual tone**
-- **Avoid overly formal or academic phrasing**
-
-## Safety Features
-
-- **Zip-based editing**: Only modifies notes XML parts, preserving slide structure, animations, and transitions
-- **In-place updates**: Uses temporary files to safely overwrite PPTX files
-- **Backup recommendation**: Always backup large PPTX files before processing
-- **Error handling**: Falls back gracefully if API calls fail
-- **Status tracking**: Progress is saved continuously, allowing safe interruption and resume
-- **Dry-run mode**: Test processing logic without making API calls
-
-## Requirements
-
-- `python-pptx>=1.0.0` - PPTX file manipulation
-- `lxml>=4.9.0` - XML processing
-- `azure-identity` - Azure authentication
-- `azure-ai-projects>=2.0.0b1` - Azure Foundry Models integration
-- `dotenv` - Environment variable management
+- **Maintain conversational tone**
+- **Provide two versions**: Short (30-50% length) + Full/Original
 
 ## Troubleshooting
 
-### Authentication Issues
+### Server not starting
+```bash
+# Verify environment
+python3 -c "from mcp_server.server import server; print('✓ OK')"
 
-If you encounter authentication errors:
+# Run quick test
+python3 tests/integration/test_mcp_server.py --quick
+```
 
-1. **Azure CLI**: Run `az login` to authenticate
-2. **Environment Variables**: Ensure `AZURE_AI_PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME` are set
-3. **Permissions**: Verify your Azure account has access to the Foundry project
+### Tools not appearing
+- Ensure MCP server is properly configured in client settings
+- Restart the client application
+- Check server logs for errors
 
-### API Errors
+### File access issues
+- Verify file paths are correct
+- Check file permissions
+- For Docker: ensure volumes are mounted correctly
 
-- **Rate Limiting**: The script includes automatic retry with exponential backoff
-- **Model Availability**: Ensure your deployment name is correct and the model is available
-- **Endpoint Format**: Verify endpoint URL format: `https://YOUR-RESOURCE-NAME.services.ai.azure.com/api/projects/YOUR_PROJECT_NAME`
+### Workspace boundary errors
+```bash
+# Configure allowed directories
+export MCP_WORKSPACE_DIRS="/path/to/presentations"
+```
 
-### PPTX Issues
+## Security Features
 
-- **Large Files**: Processing large PPTX files may take time; be patient
-- **Corrupted Files**: Always work with backups
-- **Empty Notes**: Empty notes are skipped automatically
+- **Path traversal prevention** with resolution checks
+- **File size limits** (default: 1000MB, configurable)
+- **Workspace boundaries** restrict file access
+- **Input sanitization** with length limits
+- **Secure temporary file handling**
+- **Structured logging** with sensitive data masking
 
-## Contributing
+## Performance
 
-This project is designed for automated PPTX notes processing. When contributing:
-
-- Follow the style guidelines in `AGENTS.md`
-- Test with sample PPTX files before making changes
-- Preserve PPTX structure and formatting
-- Document any new features or changes
+- **LRU caching** for frequently accessed presentations
+- **Batch operations** reduce round-trips by 50-100x
+- **Parallel processing** for multi-slide operations
+- **Lazy loading** of presentation data
+- **Metrics collection** for monitoring
 
 ## License
 
 **[MIT](LICENSE)**
 
+## Contributing
+
+Contributions welcome! Please:
+- Follow existing code style
+- Add tests for new features
+- Update documentation
+- Preserve PPTX structure and formatting
+
 ## References
 
-- [Azure Foundry Models Documentation](https://learn.microsoft.com/en-us/azure/ai-foundry/foundry-models/)
-- [Azure Identity Documentation](https://learn.microsoft.com/en-us/python/api/azure-identity/)
+- [Model Context Protocol Specification](https://modelcontextprotocol.io/)
+- [GitHub Agent Skills Documentation](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills)
 - [python-pptx Documentation](https://python-pptx.readthedocs.io/)
-
+- [Azure AI Documentation](https://learn.microsoft.com/en-us/azure/ai-services/)

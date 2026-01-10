@@ -3,6 +3,7 @@
 
 import asyncio
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -14,15 +15,31 @@ async def test_mcp_server():
     print("🧪 Testing PPTX MCP Server...")
     print("=" * 60)
     
-    # Start the server process
-    server_path = Path(__file__).parent / "mcp_server" / "server.py"
+    # Start the server process with src/ layout on PYTHONPATH
+    repo_root = Path(__file__).resolve().parents[2]
+    src_path = repo_root / "src"
+    server_path = src_path / "mcp_server" / "server.py"
+    if not server_path.exists():
+        print(f"   ❌ Server path not found: {server_path}")
+        return False
+
+    env = os.environ.copy()
+    existing_pythonpath = env.get("PYTHONPATH")
+    env["PYTHONPATH"] = (
+        f"{src_path}{os.pathsep}{existing_pythonpath}"
+        if existing_pythonpath
+        else str(src_path)
+    )
+
     process = subprocess.Popen(
         [sys.executable, "-m", "mcp_server.server"],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
-        bufsize=0
+        bufsize=0,
+        cwd=repo_root,
+        env=env,
     )
     
     try:

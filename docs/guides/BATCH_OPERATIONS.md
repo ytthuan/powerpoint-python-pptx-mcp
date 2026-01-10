@@ -156,7 +156,7 @@ The implementation includes comprehensive unit tests:
 
 Run tests:
 ```bash
-python3 -m pytest test_batch_operations.py -v
+python3 -m pytest tests/integration/test_batch_operations.py -v
 ```
 
 ## Demonstration
@@ -164,7 +164,7 @@ python3 -m pytest test_batch_operations.py -v
 Run the demonstration script to see batch operations in action:
 
 ```bash
-python3 demo_batch_operations.py
+python3 examples/demo_batch_operations.py
 ```
 
 The demo shows:
@@ -213,10 +213,10 @@ For processing 50 slides:
 
 ## Documentation
 
-- **MCP_AGENT_INSTRUCTIONS.md**: Comprehensive guide for AI agents
-- **AGENTS.md**: Overview and workflow examples
-- **test_batch_operations.py**: Unit tests with usage examples
-- **demo_batch_operations.py**: Interactive demonstration
+- **`../../.github/skills/pptx-mcp-server/SKILL.md`**: Agent Skill for Copilot and other agents
+- **[AGENTS.md](../../AGENTS.md)**: Quick reference and workflow examples
+- **tests/integration/test_batch_operations.py**: Unit tests with usage examples
+- **examples/demo_batch_operations.py**: Interactive demonstration
 
 ## Best Practices
 
@@ -244,4 +244,4 @@ Potential improvements for future versions:
 For issues, questions, or contributions:
 - Check the test suite for usage examples
 - Run the demo script to see operations in action
-- Refer to MCP_AGENT_INSTRUCTIONS.md for detailed documentation
+- Refer to `../../.github/skills/pptx-mcp-server/SKILL.md` for detailed documentation

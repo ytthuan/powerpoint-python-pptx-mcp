@@ -21,22 +21,22 @@ The MCP server has been significantly refactored to improve:
                      │
 ┌────────────────────┴────────────────────────────────────┐
 │                    Tools Layer                          │
-│  (notes_tools, read_tools, edit_tools, slide_tools)    │
+│  (notes_tools, read_tools, edit_tools, slide_tools)     │
 └────────────────────┬────────────────────────────────────┘
                      │
 ┌────────────────────┴────────────────────────────────────┐
 │                  Service Layer                          │
 │         (ServiceRegistry, Interfaces)                   │
-│  ┌──────────────┬──────────────┬──────────────┐        │
-│  │ PPTXHandler  │ NotesEditor  │  Validators  │        │
-│  └──────────────┴──────────────┴──────────────┘        │
+│  ┌──────────────┬──────────────┬──────────────┐         │
+│  │ PPTXHandler  │ NotesEditor  │  Validators  │         │
+│  └──────────────┴──────────────┴──────────────┘         │
 └────────────────────┬────────────────────────────────────┘
                      │
 ┌────────────────────┴────────────────────────────────────┐
 │             Cross-Cutting Concerns                      │
-│  ┌──────────┬──────────┬──────────┬──────────┐        │
-│  │  Cache   │ Logging  │ Metrics  │  Config  │        │
-│  └──────────┴──────────┴──────────┴──────────┘        │
+│  ┌──────────┬──────────┬──────────┬──────────┐          │
+│  │  Cache   │ Logging  │ Metrics  │  Config  │          │
+│  └──────────┴──────────┴──────────┴──────────┘          │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -354,12 +354,13 @@ def test_with_mock_cache(registry):
     assert cache.get("key") == "value"
 ```
 
-## Migration from Old Architecture
+## Usage with AI Agents
 
-See [MIGRATION.md](../MIGRATION.md) for detailed migration guide from scripts to MCP tools.
+The repository includes a GitHub Agent Skill at `../../.github/skills/pptx-mcp-server/SKILL.md` that provides comprehensive usage instructions for AI agents like GitHub Copilot.
+
+Learn more: [About Agent Skills](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills)
 
 ### Quick Checklist
-- [ ] Replace direct script calls with MCP tools
 - [ ] Configure environment variables
 - [ ] Enable caching for performance
 - [ ] Setup structured logging

@@ -56,6 +56,13 @@ Homepage = "https://github.com/ytthuan/powerpoint-python-pptx-mcp"
 Repository = "https://github.com/ytthuan/powerpoint-python-pptx-mcp"
 Issues = "https://github.com/ytthuan/powerpoint-python-pptx-mcp/issues"
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["mcp_server*"]
+
 # Black configuration
 [tool.black]
 line-length = 100
@@ -139,7 +146,7 @@ asyncio_mode = "auto"
 
 # Coverage configuration (supplemental to pytest.ini)
 [tool.coverage.paths]
-source = ["mcp_server"]
+source = ["src/mcp_server", "mcp_server"]
 
 [tool.coverage.run]
 branch = true

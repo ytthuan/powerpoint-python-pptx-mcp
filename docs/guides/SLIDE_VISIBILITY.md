@@ -199,17 +199,17 @@ This ensures compatibility with all PowerPoint versions and other OOXML-complian
 Run the included tests to verify functionality:
 
 ```bash
-# Unit tests
-python3 test_slide_visibility.py
+# Feature tests
+python3 -m pytest tests/integration/test_slide_visibility.py
 
 # Integration tests
-python3 test_slide_visibility_integration.py
+python3 -m pytest tests/integration/test_slide_visibility_integration.py
 
 # Demo script
-python3 demo_slide_visibility.py
+python3 examples/demo_slide_visibility.py
 
 # MCP server tests
-python3 test_mcp_server.py --quick
+python3 tests/integration/test_mcp_server.py --quick
 ```
 
 All tests should pass with no errors.
