@@ -26,11 +26,9 @@ jobs:
       
       - name: Check code formatting with black
         run: black --check --line-length 100 mcp_server tests
-        continue-on-error: true
       
       - name: Lint with flake8
         run: flake8 mcp_server tests --max-line-length=100 --extend-ignore=E203,W503
-        continue-on-error: true
 
   test:
     name: Test Suite

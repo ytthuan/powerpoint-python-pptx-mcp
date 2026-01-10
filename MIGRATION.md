@@ -204,14 +204,14 @@ except Exception as e:
 ```python
 from mcp_server.exceptions import (
     PPTXError,
-    FileNotFoundError,
+    PPTXFileNotFoundError,
     ValidationError,
     SlideNotFoundError
 )
 
 try:
     result = await handle_update_notes(args)
-except FileNotFoundError as e:
+except PPTXFileNotFoundError as e:
     # File doesn't exist
     print(f"File not found: {e.message}")
 except ValidationError as e:

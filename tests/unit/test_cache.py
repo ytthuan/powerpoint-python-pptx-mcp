@@ -1,8 +1,6 @@
 """Unit tests for caching module."""
 
 import time
-import pytest
-from pathlib import Path
 from threading import Thread
 
 from mcp_server.cache import LRUCache, PresentationCache

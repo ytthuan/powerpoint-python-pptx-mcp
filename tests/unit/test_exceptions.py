@@ -1,7 +1,5 @@
 """Unit tests for exception hierarchy module."""
 
-import pytest
-
 from mcp_server.exceptions import (
     PPTXError,
     ValidationError,

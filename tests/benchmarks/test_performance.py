@@ -1,10 +1,8 @@
 """Performance benchmarks for MCP server components."""
 
 import time
-import pytest
-from pathlib import Path
 
-from mcp_server.cache import LRUCache, PresentationCache
+from mcp_server.cache import LRUCache
 from mcp_server.config import get_config, reset_config
 
 

@@ -71,7 +71,7 @@ Structured exception hierarchy for better error handling:
 
 **Usage:**
 ```python
-from mcp_server.exceptions import ValidationError, FileNotFoundError
+from mcp_server.exceptions import ValidationError, PPTXFileNotFoundError
 
 try:
     result = validate_input(data)
