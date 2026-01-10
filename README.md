@@ -687,7 +687,7 @@ This project is designed for automated PPTX notes processing. When contributing:
 
 ## License
 
-[Add your license information here]
+**[License](LICENSE.md)**
 
 ## References
 
