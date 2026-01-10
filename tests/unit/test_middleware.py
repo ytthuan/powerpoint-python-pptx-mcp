@@ -39,9 +39,10 @@ class TestLoggingMiddleware:
     async def test_logs_tool_call(self, mock_handler):
         """Test that logging middleware logs tool calls."""
         import logging
+
         test_logger = logging.getLogger("test_middleware")
         test_logger.setLevel(logging.INFO)
-        
+
         middleware = LoggingMiddleware(logger_instance=test_logger)
 
         with patch("mcp_server.middleware.set_correlation_id") as mock_set_corr:
@@ -54,9 +55,10 @@ class TestLoggingMiddleware:
     async def test_logs_errors(self, error_handler):
         """Test that logging middleware logs errors."""
         import logging
+
         test_logger = logging.getLogger("test_middleware_error")
         test_logger.setLevel(logging.INFO)
-        
+
         middleware = LoggingMiddleware(logger_instance=test_logger)
 
         with patch("mcp_server.middleware.set_correlation_id") as mock_set_corr:
@@ -79,9 +81,10 @@ class TestLoggingMiddleware:
     async def test_timing_logged(self, mock_handler):
         """Test that execution time is logged."""
         import logging
+
         test_logger = logging.getLogger("test_middleware_timing")
         test_logger.setLevel(logging.INFO)
-        
+
         middleware = LoggingMiddleware(logger_instance=test_logger)
 
         # Add delay to handler

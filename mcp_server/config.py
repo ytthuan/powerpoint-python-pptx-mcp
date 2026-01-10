@@ -103,7 +103,7 @@ class Config:
     # Azure configuration (for note processing)
     azure_endpoint: Optional[str] = None
     azure_deployment_name: Optional[str] = None
-    
+
     # Resource discovery paths
     resource_search_paths: list[Path] = field(default_factory=list)
 
@@ -177,7 +177,7 @@ class Config:
 
         if enable_audit := os.getenv("MCP_ENABLE_AUDIT_LOGGING"):
             config.enable_audit_logging = enable_audit.lower() == "true"
-        
+
         # Resource search paths
         if search_paths := os.getenv("MCP_RESOURCE_SEARCH_PATHS"):
             config.resource_search_paths = [

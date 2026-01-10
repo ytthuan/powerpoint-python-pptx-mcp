@@ -71,18 +71,19 @@ logger = logging.getLogger(__name__)
 # Create MCP server
 server = Server("pptx-mcp-server")
 
+
 # Initialize tool registry and register all tools
 def register_all_tools():
     """Register all tool handlers with the tool registry."""
     registry = get_tool_registry()
-    
+
     # Read tools
     registry.register_handler("read_slide_content", handle_read_slide_content)
     registry.register_handler("read_slide_text", handle_read_slide_text)
     registry.register_handler("read_slide_images", handle_read_slide_images)
     registry.register_handler("read_presentation_info", handle_read_presentation_info)
     registry.register_handler("read_slides_metadata", handle_read_slides_metadata)
-    
+
     # Edit tools
     registry.register_handler("update_slide_text", handle_update_slide_text)
     registry.register_handler("replace_slide_image", handle_replace_slide_image)
@@ -90,14 +91,14 @@ def register_all_tools():
     registry.register_handler("add_image", handle_add_image)
     registry.register_handler("replace_slide_content", handle_replace_slide_content)
     registry.register_handler("update_slide_content", handle_update_slide_content)
-    
+
     # Slide management tools
     registry.register_handler("add_slide", handle_add_slide)
     registry.register_handler("delete_slide", handle_delete_slide)
     registry.register_handler("duplicate_slide", handle_duplicate_slide)
     registry.register_handler("change_slide_layout", handle_change_slide_layout)
     registry.register_handler("set_slide_visibility", handle_set_slide_visibility)
-    
+
     # Notes tools
     registry.register_handler("read_notes", handle_read_notes)
     registry.register_handler("read_notes_batch", handle_read_notes_batch)
@@ -105,14 +106,15 @@ def register_all_tools():
     registry.register_handler("update_notes_batch", handle_update_notes_batch)
     registry.register_handler("format_notes_structure", handle_format_notes_structure)
     registry.register_handler("process_notes_workflow", handle_process_notes_workflow)
-    
+
     # Text replacement tools
     registry.register_handler("replace_text", handle_replace_text)
-    
+
     # Health tools
     registry.register_handler("health_check", handle_health_check)
-    
+
     logger.info(f"Registered {len(registry.get_registered_tools())} tools")
+
 
 # Initialize middleware pipeline
 def create_middleware_pipeline() -> MiddlewarePipeline:
@@ -124,6 +126,7 @@ def create_middleware_pipeline() -> MiddlewarePipeline:
         RateLimiterMiddleware(),
     ]
     return MiddlewarePipeline(middlewares)
+
 
 # Register tools and create middleware on module load
 register_all_tools()
@@ -151,7 +154,7 @@ async def call_tool(name: str, arguments: dict) -> dict:
     try:
         # Get the tool registry
         registry = get_tool_registry()
-        
+
         # Execute through middleware pipeline
         return await middleware_pipeline.execute(name, arguments, registry.dispatch)
 
@@ -164,7 +167,7 @@ async def call_tool(name: str, arguments: dict) -> dict:
 async def list_resources() -> list[Resource]:
     """List all available resources."""
     config = get_config()
-    
+
     # Use configured search paths if available, otherwise use defaults
     if config.resource_search_paths:
         search_paths = config.resource_search_paths
@@ -202,17 +205,17 @@ async def read_resource(uri: str) -> str:
 async def main():
     """Main entry point for MCP server."""
     logger.info("Starting PPTX MCP Server...")
-    
+
     # Startup tasks
     try:
         config = get_config()
         logger.info(f"Running in {config.environment.value} environment")
         logger.info(f"Cache enabled: {config.performance.enable_cache}")
         logger.info(f"Rate limiting enabled: {config.performance.enable_rate_limiting}")
-        
+
         # Initialize services if needed
         # (Cache and metrics are lazily initialized via ServiceRegistry)
-        
+
     except Exception as e:
         logger.error(f"Error during startup: {e}", exc_info=True)
         raise
