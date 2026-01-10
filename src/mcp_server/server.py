@@ -225,6 +225,7 @@ async def main():
     # Startup tasks
     try:
         from .logging_config import setup_logging
+
         config = get_config()
         setup_logging()
         logger.info(f"Running in {config.environment.value} environment")

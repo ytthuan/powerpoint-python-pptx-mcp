@@ -44,50 +44,50 @@ def test_handler_lazy_load(mock_pres_class, mock_validate_path, mock_config):
 
 
 @patch("src.mcp_server.core.pptx_handler.Presentation")
-def test_get_slide_count(mock_pres_class, mock_validate_path, mock_config):
+async def test_get_slide_count(mock_pres_class, mock_validate_path, mock_config):
     handler = PPTXHandler("test.pptx")
     handler.presentation.slides = [MagicMock(), MagicMock()]
-    assert handler.get_slide_count() == 2
+    assert await handler.get_slide_count() == 2
 
 
 @patch("src.mcp_server.core.pptx_handler.Presentation")
-def test_is_slide_hidden(mock_pres_class, mock_validate_path, mock_config):
+async def test_is_slide_hidden(mock_pres_class, mock_validate_path, mock_config):
     handler = PPTXHandler("test.pptx")
     mock_slide = MagicMock()
     handler.presentation.slides = [mock_slide]
 
     # Hidden
     mock_slide.element.get.return_value = "0"
-    assert handler.is_slide_hidden(1) is True
+    assert await handler.is_slide_hidden(1) is True
 
     # Visible (missing show attr)
     mock_slide.element.get.return_value = None
-    assert handler.is_slide_hidden(1) is False
+    assert await handler.is_slide_hidden(1) is False
 
     # Visible (show="1")
     mock_slide.element.get.return_value = "1"
-    assert handler.is_slide_hidden(1) is False
+    assert await handler.is_slide_hidden(1) is False
 
 
 @patch("src.mcp_server.core.pptx_handler.Presentation")
-def test_set_slide_hidden(mock_pres_class, mock_validate_path, mock_config):
+async def test_set_slide_hidden(mock_pres_class, mock_validate_path, mock_config):
     handler = PPTXHandler("test.pptx")
     mock_slide = MagicMock()
     handler.presentation.slides = [mock_slide]
 
     # Set to hidden
-    handler.set_slide_hidden(1, True)
+    await handler.set_slide_hidden(1, True)
     mock_slide.element.set.assert_called_with("show", "0")
     assert handler._is_modified is True
 
     # Set to visible
     mock_slide.element.attrib = {"show": "0"}
-    handler.set_slide_hidden(1, False)
+    await handler.set_slide_hidden(1, False)
     assert "show" not in mock_slide.element.attrib
 
 
 @patch("src.mcp_server.core.pptx_handler.Presentation")
-def test_get_slide_text(mock_pres_class, mock_validate_path, mock_config):
+async def test_get_slide_text(mock_pres_class, mock_validate_path, mock_config):
     handler = PPTXHandler("test.pptx")
     mock_slide = MagicMock()
     handler.presentation.slides = [mock_slide]
@@ -100,28 +100,28 @@ def test_get_slide_text(mock_pres_class, mock_validate_path, mock_config):
     mock_shape.text_frame.paragraphs = [mock_para]
     mock_slide.shapes = [mock_shape]
 
-    text = handler.get_slide_text(1)
+    text = await handler.get_slide_text(1)
     assert text == "Hello World"
 
 
 @patch("src.mcp_server.core.pptx_handler.Presentation")
-def test_get_notes(mock_pres_class, mock_validate_path, mock_config):
+async def test_get_notes(mock_pres_class, mock_validate_path, mock_config):
     handler = PPTXHandler("test.pptx")
     mock_slide = MagicMock()
     mock_slide.has_notes_slide = True
     mock_slide.notes_slide.notes_text_frame.text = "The note"
     handler.presentation.slides = [mock_slide]
 
-    result = handler.get_notes(1)
+    result = await handler.get_notes(1)
     assert result == {"slide": 1, "notes": "The note"}
 
 
 @patch("src.mcp_server.core.pptx_handler.Presentation")
-def test_save(mock_pres_class, mock_validate_path, mock_config):
+async def test_save(mock_pres_class, mock_validate_path, mock_config):
     handler = PPTXHandler("test.pptx")
     # Trigger lazy load
     mock_pres = handler.presentation
 
-    handler.save("output.pptx")
+    await handler.save("output.pptx")
     mock_pres.save.assert_called_with("output.pptx")
     assert handler._is_modified is False

@@ -70,13 +70,14 @@ class PPTXHandler:
     @property
     def presentation(self) -> Presentation:
         """Access presentation synchronously.
-        
+
         Note: This will raise RuntimeError if the presentation hasn't been loaded yet
         via get_presentation(). Use get_presentation() in async contexts.
         """
         if self._presentation is None:
             # For backward compatibility, we'll load it synchronously but log a warning
             import logging
+
             logging.getLogger(__name__).warning(
                 "Synchronous access to PPTXHandler.presentation is deprecated. "
                 "Use await handler.get_presentation() instead."

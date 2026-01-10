@@ -143,7 +143,7 @@ def _replace_in_text(
     return new_text, count
 
 
-def _replace_in_notes(
+async def _replace_in_notes(
     pptx_path: Path,
     pattern: str,
     replacement: str,
@@ -155,7 +155,7 @@ def _replace_in_notes(
 ) -> Dict[str, Any]:
     """Replace text in speaker notes."""
     handler = PPTXHandler(pptx_path)
-    max_slides = handler.get_slide_count()
+    max_slides = await handler.get_slide_count()
 
     # Determine which slides to process
     if slide_number:
@@ -171,12 +171,13 @@ def _replace_in_notes(
     slides_changed = 0
     remaining_replacements = max_replacements if max_replacements > 0 else float("inf")
 
+    pres = await handler.get_presentation()
     for slide_num in slide_numbers:
         if remaining_replacements <= 0:
             break
 
         # Get current notes
-        slide = handler.presentation.slides[slide_num - 1]
+        slide = pres.slides[slide_num - 1]
         notes_text = ""
         if slide.has_notes_slide:
             try:
@@ -354,8 +355,7 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
 
         # Process based on target
         if target == "slide_notes":
-            result = await run_in_thread(
-                _replace_in_notes,
+            result = await _replace_in_notes(
                 pptx_path,
                 pattern,
                 replacement,

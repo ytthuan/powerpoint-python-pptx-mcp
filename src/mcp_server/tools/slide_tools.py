@@ -321,10 +321,10 @@ async def handle_set_slide_visibility(arguments: Dict[str, Any]) -> Dict[str, An
     output_path = arguments.get("output_path")
 
     handler = PPTXHandler(pptx_path)
-    validate_slide_number(slide_number, handler.get_slide_count())
+    validate_slide_number(slide_number, await handler.get_slide_count())
 
     # Set slide visibility
-    handler.set_slide_hidden(slide_number, hidden)
+    await handler.set_slide_hidden(slide_number, hidden)
 
     # Save
     if output_path:

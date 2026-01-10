@@ -26,7 +26,7 @@ class SecurityConfig:
     """Security-related configuration."""
 
     # File size limits (in bytes)
-    max_file_size: int = 1048576000  # 1000MB (1GB) default
+    max_file_size: int = 1024 * 1024 * 1024  # 1GB default
 
     # Allowed file extensions (beyond .pptx)
     allowed_extensions: Set[str] = field(default_factory=lambda: {".pptx", ".pptm"})
@@ -69,7 +69,7 @@ class LoggingConfig:
     level: str = "INFO"
 
     # Structured logging
-    enable_structured_logging: bool = False
+    enable_structured_logging: bool = True
     enable_correlation_ids: bool = True
 
     # Log sampling (for high-volume operations)
