@@ -83,7 +83,9 @@ async def test_set_slide_hidden(temp_pptx):
 
         handler2 = PPTXHandler(temp_file2)
         assert await handler2.is_slide_hidden(1) is True, "Slide 1 should remain hidden after save"
-        assert await handler2.is_slide_hidden(2) is False, "Slide 2 should remain visible after save"
+        assert (
+            await handler2.is_slide_hidden(2) is False
+        ), "Slide 2 should remain visible after save"
         assert await handler2.is_slide_hidden(3) is True, "Slide 3 should remain hidden after save"
     finally:
         if os.path.exists(temp_file2):

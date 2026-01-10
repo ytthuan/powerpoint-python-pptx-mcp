@@ -62,7 +62,7 @@ async def test_process_notes_workflow_vietnamese_policy(test_pptx):
 
     # Verify the saved content
     handler = PPTXHandler(test_pptx)
-    notes = handler.get_notes(1)
+    notes = await handler.get_notes(1)
 
     expected_structure = (
         "- Short version:\n"
@@ -96,8 +96,8 @@ async def test_process_notes_workflow_multi_slide(test_pptx):
     assert result["updated_slides"] == 2
 
     handler = PPTXHandler(test_pptx)
-    notes1 = handler.get_notes(1)
-    notes2 = handler.get_notes(2)
+    notes1 = await handler.get_notes(1)
+    notes2 = await handler.get_notes(2)
 
     assert "Original 1" in notes1["notes"]
     assert "Original 2" in notes2["notes"]
