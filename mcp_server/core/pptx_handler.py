@@ -13,27 +13,73 @@ from pptx.shapes.autoshape import Shape
 from pptx.shapes.freeform import FreeformBuilder
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 
+from ..cache import PresentationCache
+from ..config import get_config
 from ..utils.validators import validate_pptx_path, validate_slide_number
 
 
 class PPTXHandler:
-    """Handler for PPTX file operations."""
+    """Handler for PPTX file operations with optional caching support.
+    
+    This handler provides core PPTX file operations with:
+    - Lazy loading of presentations
+    - Optional caching for better performance
+    - Automatic cache invalidation on modifications
+    """
 
-    def __init__(self, pptx_path: str | Path):
-        """Initialize handler with PPTX file path."""
+    def __init__(
+        self, 
+        pptx_path: str | Path,
+        cache: Optional[PresentationCache] = None,
+        enable_cache: Optional[bool] = None
+    ):
+        """Initialize handler with PPTX file path.
+        
+        Args:
+            pptx_path: Path to PPTX file
+            cache: Optional PresentationCache instance
+            enable_cache: Whether to enable caching (uses config default if None)
+        """
         self.pptx_path = validate_pptx_path(pptx_path)
         self._presentation: Optional[Presentation] = None
+        
+        # Caching support
+        config = get_config()
+        self._enable_cache = enable_cache if enable_cache is not None else config.performance.enable_cache
+        self._cache = cache if self._enable_cache else None
+        self._is_modified = False
 
     @property
     def presentation(self) -> Presentation:
-        """Lazy load presentation."""
+        """Lazy load presentation with optional caching."""
         if self._presentation is None:
+            # Try to get from cache first
+            if self._cache and self._enable_cache:
+                cached = self._cache.get_presentation(self.pptx_path)
+                if cached is not None:
+                    self._presentation = cached
+                    return self._presentation
+            
+            # Load from file
             self._presentation = Presentation(str(self.pptx_path))
+            
+            # Cache it
+            if self._cache and self._enable_cache:
+                self._cache.cache_presentation(self.pptx_path, self._presentation)
+        
         return self._presentation
 
     def reload(self):
-        """Reload presentation from file."""
+        """Reload presentation from file.
+        
+        Clears cached presentation and marks for reload on next access.
+        """
         self._presentation = None
+        self._is_modified = False
+        
+        # Invalidate cache
+        if self._cache and self._enable_cache:
+            self._cache.invalidate(self.pptx_path)
 
     def get_slide_count(self) -> int:
         """Get total number of slides."""
@@ -77,6 +123,9 @@ class PPTXHandler:
             # Remove the show attribute to restore default (visible)
             if 'show' in slide.element.attrib:
                 del slide.element.attrib['show']
+        
+        # Mark as modified
+        self._is_modified = True
 
     def get_presentation_info(self) -> Dict[str, Any]:
         """Get presentation metadata."""
@@ -293,11 +342,21 @@ class PPTXHandler:
         return slides_metadata
 
     def save(self, output_path: Optional[str | Path] = None):
-        """Save presentation to file."""
-        if output_path:
-            output_path = Path(output_path)
-            self.presentation.save(str(output_path))
-        else:
-            self.presentation.save(str(self.pptx_path))
+        """Save presentation to file.
+        
+        Args:
+            output_path: Optional output path. If None, saves to original path.
+        """
+        save_path = Path(output_path) if output_path else self.pptx_path
+        self.presentation.save(str(save_path))
+        
+        # Invalidate cache after save
+        if self._cache and self._enable_cache:
+            self._cache.invalidate(save_path)
+            # If saving to original path or same path, also invalidate original reference
+            if output_path is None or Path(output_path) == self.pptx_path:
+                self._cache.invalidate(self.pptx_path)
+        
+        self._is_modified = False
 
 

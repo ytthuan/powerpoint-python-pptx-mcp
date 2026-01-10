@@ -3,6 +3,23 @@
 Script to update speaker notes to include both short and original versions.
 Uses Azure Foundry Models Response API to translate and generate short versions.
 Skips empty notes.
+
+⚠️ DEPRECATION WARNING ⚠️
+==========================
+This script is DEPRECATED and will be removed in a future version.
+Please use the MCP server tools with the notes_tools workflow instead.
+
+Migration guide: See MIGRATION.md for instructions on transitioning to MCP tools.
+
+The MCP server provides:
+- Better error handling and validation
+- Consistent API across all operations  
+- Enhanced security features
+- Structured logging and monitoring
+- Type safety and comprehensive testing
+
+For MCP server usage, see README.md and AGENTS.md documentation.
+==========================
 """
 
 import json
@@ -10,6 +27,7 @@ import os
 import re
 import sys
 import time
+import warnings
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
@@ -17,6 +35,38 @@ from threading import Lock
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+# Show deprecation warning
+def _show_deprecation_warning():
+    """Display deprecation warning to users."""
+    warning_msg = """
+╔═══════════════════════════════════════════════════════════════════════╗
+║                      ⚠️  DEPRECATION WARNING ⚠️                        ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  This script (update_notes_format.py) is DEPRECATED and will be      ║
+║  removed in a future version.                                         ║
+║                                                                        ║
+║  Please use the MCP server notes_tools workflow instead:              ║
+║  - Better error handling and validation                               ║
+║  - Consistent API across all operations                               ║
+║  - Enhanced security features                                         ║
+║  - Structured logging and monitoring                                  ║
+║                                                                        ║
+║  See MIGRATION.md for migration instructions.                         ║
+║  See README.md for MCP server usage.                                  ║
+╚═══════════════════════════════════════════════════════════════════════╝
+"""
+    print(warning_msg, file=sys.stderr)
+    warnings.warn(
+        "update_notes_format.py is deprecated. Use MCP server notes_tools workflow instead. "
+        "See MIGRATION.md for migration guide.",
+        DeprecationWarning,
+        stacklevel=2
+    )
+
+
+_show_deprecation_warning()
 
 try:
     from azure.identity import DefaultAzureCredential

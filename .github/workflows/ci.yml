@@ -1,0 +1,56 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, copilot/* ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    name: Lint and Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install black isort flake8 bandit
+          pip install -r requirements.txt
+      
+      - name: Check code formatting with black
+        run: black --check --line-length 100 mcp_server tests
+      
+      - name: Lint with flake8
+        run: flake8 mcp_server tests --max-line-length=100 --extend-ignore=E203,W503
+
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-xdist pytest-asyncio
+          pip install -r requirements.txt
+      
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ -v --cov=mcp_server --cov-report=xml --cov-report=term-missing -n auto
