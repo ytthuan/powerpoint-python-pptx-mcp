@@ -411,4 +411,4 @@ Use this checklist to track your migration progress:
 
 **Questions?** Open an issue on GitHub or check the documentation.
 
-**Last Updated:** 2024-01-10
+**Last Updated:** 2026-01-10

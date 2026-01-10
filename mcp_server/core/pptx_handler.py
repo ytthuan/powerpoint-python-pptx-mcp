@@ -353,8 +353,8 @@ class PPTXHandler:
         # Invalidate cache after save
         if self._cache and self._enable_cache:
             self._cache.invalidate(save_path)
-            # If saved to same path, also invalidate original
-            if output_path and Path(output_path) != self.pptx_path:
+            # If saving to original path or same path, also invalidate original reference
+            if output_path is None or Path(output_path) == self.pptx_path:
                 self._cache.invalidate(self.pptx_path)
         
         self._is_modified = False

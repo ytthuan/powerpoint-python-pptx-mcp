@@ -113,7 +113,7 @@ class FileOperationError(PPTXError):
     pass
 
 
-class FileNotFoundError(FileOperationError):
+class PPTXFileNotFoundError(FileOperationError):
     """Raised when a required file is not found."""
     
     def __init__(self, file_path: str, **kwargs):

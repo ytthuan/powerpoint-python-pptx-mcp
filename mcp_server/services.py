@@ -81,18 +81,32 @@ class ServiceRegistry:
         Args:
             service_type: The type/interface of the service
             factory: Factory function that creates the service
-            singleton: If True, factory is called once and result is cached
+            singleton: 
+                - If True, the factory is called immediately and the created
+                  instance is stored as a singleton. All subsequent
+                  :meth:`resolve` calls for this type will return that
+                  pre-created instance.
+                - If False (default), the factory itself is stored and will
+                  be called on every :meth:`resolve` to create a new instance.
             
         Example:
+            # Non-singleton: new instance on each resolve
             registry.register_factory(
                 IPPTXHandler,
                 lambda: PPTXHandler(path),
                 singleton=False
             )
+            
+            # Eager singleton: instance is created immediately and reused
+            registry.register_factory(
+                IPPTXHandler,
+                lambda: PPTXHandler(path),
+                singleton=True
+            )
         """
         self._factories[service_type] = factory
         if singleton:
-            # Pre-create singleton
+            # Eagerly pre-create and cache singleton instance
             self._singletons[service_type] = factory()
     
     def resolve(self, service_type: Type[T]) -> T:
@@ -237,8 +251,8 @@ def setup_default_services(registry: Optional[ServiceRegistry] = None) -> Servic
     if registry is None:
         registry = get_registry()
     
-    # Register config (always available)
-    config = registry.config
+    # Access config to ensure it is initialized / available
+    registry.config
     
     # Register logger factory
     from .logging_config import get_logger

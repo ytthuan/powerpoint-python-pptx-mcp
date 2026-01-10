@@ -185,8 +185,10 @@ class MetricsCollector(IMetricsCollector):
             return 0.0
         
         sorted_values = sorted(values)
-        index = int((percentile / 100.0) * len(sorted_values))
-        index = min(index, len(sorted_values) - 1)
+        n = len(sorted_values)
+        position = (percentile / 100.0) * (n - 1)
+        index = int(position)
+        index = max(0, min(index, n - 1))
         return sorted_values[index]
 
 

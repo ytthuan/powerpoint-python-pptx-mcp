@@ -25,7 +25,7 @@ class SecurityConfig:
     """Security-related configuration."""
     
     # File size limits (in bytes)
-    max_file_size: int = 100 * 1024 * 1024  # 100MB default
+    max_file_size: int = 1024 * 1024 * 1024  # 1GB default
     
     # Allowed file extensions (beyond .pptx)
     allowed_extensions: Set[str] = field(default_factory=lambda: {".pptx", ".pptm"})
@@ -134,6 +134,7 @@ class Config:
             try:
                 config.security.max_file_size = int(max_size)
             except ValueError:
+                # Invalid integer format, keep default
                 pass
         
         if workspace_dirs := os.getenv("MCP_WORKSPACE_DIRS"):
@@ -152,6 +153,7 @@ class Config:
             try:
                 config.performance.cache_size = int(cache_size)
             except ValueError:
+                # Invalid integer format, keep default
                 pass
         
         # Logging settings

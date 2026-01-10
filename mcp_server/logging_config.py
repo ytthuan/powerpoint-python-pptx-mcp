@@ -14,7 +14,7 @@ import logging
 import random
 import time
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Optional
 
 from .config import get_config
@@ -66,7 +66,7 @@ class StructuredFormatter(logging.Formatter):
             JSON-formatted log string
         """
         log_data = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "correlation_id": getattr(record, "correlation_id", "no-correlation-id"),

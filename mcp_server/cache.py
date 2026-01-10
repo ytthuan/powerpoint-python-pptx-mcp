@@ -14,7 +14,6 @@ from typing import Any, Dict, Optional
 from pptx import Presentation
 
 from .config import get_config
-from .exceptions import CacheError
 from .interfaces import ICache
 
 
@@ -225,8 +224,8 @@ class PresentationCache:
         mtime = pptx_path.stat().st_mtime
         key_str = f"{pptx_path}:{mtime}"
         
-        # Use hash for shorter key
-        return hashlib.md5(key_str.encode()).hexdigest()
+        # Use hash for shorter key (avoid MD5 to satisfy security tooling)
+        return hashlib.sha256(key_str.encode()).hexdigest()
     
     def get_presentation(self, pptx_path: Path) -> Optional[Presentation]:
         """Get cached presentation.
@@ -273,6 +272,7 @@ class PresentationCache:
             cache_key = self._get_cache_key(pptx_path)
             self._cache.delete(cache_key)
         except FileNotFoundError:
+            # If the file doesn't exist, there's nothing to invalidate
             pass
     
     def clear(self) -> None:

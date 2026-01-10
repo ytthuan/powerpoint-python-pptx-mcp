@@ -7,13 +7,12 @@ This module provides comprehensive input validation with security checks includi
 - Input sanitization
 """
 
-import os
 from pathlib import Path
 from typing import Any, List, Optional
 
 from ..config import get_config
 from ..exceptions import (
-    FileNotFoundError as PPTXFileNotFoundError,
+    PPTXFileNotFoundError,
     FileTooLargeError,
     InvalidPathError,
     InvalidSlideNumberError,
@@ -25,25 +24,21 @@ from ..exceptions import (
 
 
 def _is_path_safe(path: Path) -> bool:
-    """Check if path is safe (no path traversal).
+    """Check if path can be safely resolved.
+    
+    This function ensures that the path can be resolved by the OS without
+    raising errors. Actual workspace and traversal restrictions are enforced
+    separately by `_check_workspace_boundary`, which uses the resolved path.
     
     Args:
         path: Path to check
         
     Returns:
-        True if path is safe, False otherwise
+        True if the path can be safely resolved, False otherwise.
     """
     try:
-        # Resolve to absolute path
-        resolved = path.resolve()
-        
-        # Check for path traversal patterns
-        path_str = str(path)
-        if ".." in path_str or path_str.startswith("/"):
-            return False
-        
-        # Additional check: ensure resolved path doesn't escape
-        # This catches cases like symlinks pointing outside
+        # Resolve to absolute path; this normalizes ".." segments and follows symlinks.
+        path.resolve()
         return True
     except (OSError, RuntimeError):
         return False
