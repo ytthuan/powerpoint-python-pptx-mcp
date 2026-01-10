@@ -9,22 +9,20 @@ from src.mcp_server.utils.validators import (
     validate_slide_number,
     validate_position,
     validate_size,
-    validate_image_path,
     validate_text_input,
     parse_slide_range,
     validate_slide_numbers,
     validate_batch_updates,
 )
 from src.mcp_server.exceptions import (
-    PPTXFileNotFoundError,
     FileTooLargeError,
     InvalidPathError,
     InvalidSlideNumberError,
-    PathTraversalError,
     ValidationError,
     WorkspaceBoundaryError,
     InputTooLargeError,
 )
+
 
 @pytest.fixture
 def mock_config():
@@ -39,10 +37,12 @@ def mock_config():
         mock.return_value = config
         yield config
 
+
 def test_is_path_safe():
     assert _is_path_safe(Path("/tmp/safe/path")) is True
     # In sandbox/normal OS, most paths can be resolved unless they are really crazy
     # but we can't easily trigger OSError/RuntimeError for resolve() without mocking
+
 
 def test_check_workspace_boundary_within(mock_config):
     path = Path("/tmp/workspace/test.pptx")
@@ -50,16 +50,19 @@ def test_check_workspace_boundary_within(mock_config):
         # Should not raise
         _check_workspace_boundary(path)
 
+
 def test_check_workspace_boundary_outside(mock_config):
     path = Path("/etc/passwd")
     with pytest.raises(WorkspaceBoundaryError):
         _check_workspace_boundary(path)
+
 
 def test_check_workspace_boundary_disabled(mock_config):
     mock_config.security.enforce_workspace_boundary = False
     path = Path("/etc/passwd")
     # Should not raise
     _check_workspace_boundary(path)
+
 
 def test_check_file_size_within(mock_config):
     path = MagicMock(spec=Path)
@@ -68,6 +71,7 @@ def test_check_file_size_within(mock_config):
     # Should not raise
     _check_file_size(path)
 
+
 def test_check_file_size_exceeds(mock_config):
     path = MagicMock(spec=Path)
     path.exists.return_value = True
@@ -75,27 +79,34 @@ def test_check_file_size_exceeds(mock_config):
     with pytest.raises(FileTooLargeError):
         _check_file_size(path)
 
+
 def test_validate_pptx_path_success(mock_config):
     path_str = "/tmp/workspace/presentation.pptx"
     path_obj = Path(path_str)
-    
-    with patch("src.mcp_server.utils.validators._is_path_safe", return_value=True), \
-         patch.object(Path, "exists", return_value=True), \
-         patch.object(Path, "resolve", return_value=path_obj), \
-         patch("src.mcp_server.utils.validators._check_file_size"):
-        
+
+    with (
+        patch("src.mcp_server.utils.validators._is_path_safe", return_value=True),
+        patch.object(Path, "exists", return_value=True),
+        patch.object(Path, "resolve", return_value=path_obj),
+        patch("src.mcp_server.utils.validators._check_file_size"),
+    ):
+
         result = validate_pptx_path(path_str)
         assert isinstance(result, Path)
         assert str(result).endswith("presentation.pptx")
 
+
 def test_validate_pptx_path_invalid_extension(mock_config):
     path_str = "/tmp/workspace/presentation.txt"
-    with patch("src.mcp_server.utils.validators._is_path_safe", return_value=True), \
-         patch.object(Path, "exists", return_value=True), \
-         patch.object(Path, "resolve", return_value=Path(path_str)):
-        
+    with (
+        patch("src.mcp_server.utils.validators._is_path_safe", return_value=True),
+        patch.object(Path, "exists", return_value=True),
+        patch.object(Path, "resolve", return_value=Path(path_str)),
+    ):
+
         with pytest.raises(InvalidPathError, match="Invalid file extension"):
             validate_pptx_path(path_str)
+
 
 def test_validate_slide_number():
     assert validate_slide_number(1, 10) == 1
@@ -107,6 +118,7 @@ def test_validate_slide_number():
     with pytest.raises(ValidationError, match="integer"):
         validate_slide_number("1", 10)
 
+
 def test_validate_position():
     assert validate_position({"x": 10.0, "y": 20.0}) == {"x": 10.0, "y": 20.0}
     assert validate_position(None) == {"x": 0.0, "y": 0.0}
@@ -116,11 +128,13 @@ def test_validate_position():
     with pytest.raises(ValueError, match="numbers"):
         validate_position({"x": "10"})
 
+
 def test_validate_size():
     assert validate_size({"width": 100.0, "height": 200.0}) == {"width": 100.0, "height": 200.0}
     assert validate_size(None) == {"width": 100.0, "height": 100.0}
     with pytest.raises(ValueError, match="positive"):
         validate_size({"width": 0, "height": 100})
+
 
 def test_validate_text_input(mock_config):
     assert validate_text_input("hello") == "hello"
@@ -129,6 +143,7 @@ def test_validate_text_input(mock_config):
         validate_text_input("a" * 1001)
     with pytest.raises(ValidationError, match="string"):
         validate_text_input(123)
+
 
 def test_parse_slide_range():
     assert parse_slide_range("1-5") == [1, 2, 3, 4, 5]
@@ -142,6 +157,7 @@ def test_parse_slide_range():
     with pytest.raises(ValueError, match="must be >= 1"):
         parse_slide_range("0-5")
 
+
 def test_validate_slide_numbers():
     assert validate_slide_numbers([1, 2, 3], 10) == [1, 2, 3]
     with pytest.raises(ValueError, match="empty"):
@@ -149,10 +165,14 @@ def test_validate_slide_numbers():
     with pytest.raises(ValueError, match="integers"):
         validate_slide_numbers([1, "2"], 10)
 
+
 def test_validate_batch_updates():
-    updates = [{"slide_number": 1, "notes_text": "hello"}, {"slide_number": 2, "notes_text": "world"}]
+    updates = [
+        {"slide_number": 1, "notes_text": "hello"},
+        {"slide_number": 2, "notes_text": "world"},
+    ]
     assert validate_batch_updates(updates, 10) == updates
-    
+
     with pytest.raises(ValueError, match="empty"):
         validate_batch_updates([], 10)
     with pytest.raises(ValueError, match="missing required field 'slide_number'"):
