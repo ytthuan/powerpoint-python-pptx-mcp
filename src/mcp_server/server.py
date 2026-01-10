@@ -4,6 +4,7 @@ import asyncio
 import logging
 from pathlib import Path
 
+import anyio
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Resource, Tool
@@ -194,7 +195,7 @@ async def list_resources() -> list[Resource]:
 
     for search_path in search_paths:
         if search_path.exists():
-            for resource in list_pptx_resources(search_path):
+            for resource in await list_pptx_resources(search_path):
                 if resource.uri not in seen_uris:
                     resources.append(resource)
                     seen_uris.add(resource.uri)
@@ -208,7 +209,7 @@ async def read_resource(uri: str) -> str:
     logger.info(f"Reading resource: {uri}")
 
     try:
-        resource_data = get_pptx_resource(uri)
+        resource_data = await get_pptx_resource(uri)
         import json
 
         return json.dumps(resource_data, indent=2)
@@ -244,6 +245,10 @@ async def main():
                 write_stream,
                 server.create_initialization_options(),
             )
+    except (anyio.BrokenResourceError, ConnectionResetError, EOFError):
+        logger.warning("Connection closed by client")
+    except Exception as e:
+        logger.error(f"Error running server: {e}", exc_info=True)
     finally:
         # Shutdown tasks
         logger.info("Shutting down PPTX MCP Server...")

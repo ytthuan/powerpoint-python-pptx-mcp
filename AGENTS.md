@@ -4,7 +4,7 @@
 
 ## What this repo is for
 
-Automated PPTX processing via an MCP server, with a primary focus on **speaker notes** workflows (read/translate/summarize/update).
+A **PowerPoint MCP Server** for automated PPTX processing, with a primary focus on **speaker notes** workflows (read/translate/summarize/update).
 
 ## Non-negotiables (speaker notes work)
 

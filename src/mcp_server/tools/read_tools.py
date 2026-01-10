@@ -118,23 +118,24 @@ async def handle_read_slide_content(arguments: Dict[str, Any]) -> Dict[str, Any]
     handler = PPTXHandler(pptx_path)
 
     if slide_number:
-        return handler.get_slide_content(slide_number)
+        return await handler.get_slide_content(slide_number)
     else:
         # Return all slides, optionally filtering hidden ones
         if include_hidden:
             # Include all slides without explicit hidden-checks here
             results = []
-            for i in range(1, handler.get_slide_count() + 1):
-                results.append(handler.get_slide_content(i))
+            slide_count = await handler.get_slide_count()
+            for i in range(1, slide_count + 1):
+                results.append(await handler.get_slide_content(i))
         else:
             # Use metadata to determine visible slides and avoid duplicate hidden checks
-            slides_metadata = handler.get_slides_metadata(include_hidden=False)
+            slides_metadata = await handler.get_slides_metadata(include_hidden=False)
             results = []
             for meta in slides_metadata:
                 slide_num = meta.get("slide_number")
                 if slide_num is None:
                     continue
-                results.append(handler.get_slide_content(slide_num))
+                results.append(await handler.get_slide_content(slide_num))
         return {"slides": results}
 
 
@@ -144,7 +145,7 @@ async def handle_read_slide_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
     slide_number = arguments["slide_number"]
 
     handler = PPTXHandler(pptx_path)
-    text = handler.get_slide_text(slide_number)
+    text = await handler.get_slide_text(slide_number)
 
     return {
         "slide_number": slide_number,
@@ -157,7 +158,7 @@ async def handle_read_slide_images(arguments: Dict[str, Any]) -> Dict[str, Any]:
     pptx_path = arguments["pptx_path"]
     slide_number = arguments["slide_number"]
 
-    images = extract_slide_images(pptx_path, slide_number)
+    images = await extract_slide_images(pptx_path, slide_number)
 
     return {
         "slide_number": slide_number,
@@ -170,7 +171,7 @@ async def handle_read_presentation_info(arguments: Dict[str, Any]) -> Dict[str, 
     pptx_path = arguments["pptx_path"]
 
     handler = PPTXHandler(pptx_path)
-    return handler.get_presentation_info()
+    return await handler.get_presentation_info()
 
 
 async def handle_read_slides_metadata(arguments: Dict[str, Any]) -> Dict[str, Any]:
@@ -179,10 +180,10 @@ async def handle_read_slides_metadata(arguments: Dict[str, Any]) -> Dict[str, An
     include_hidden = arguments.get("include_hidden", True)
 
     handler = PPTXHandler(pptx_path)
-    slides = handler.get_slides_metadata(include_hidden=include_hidden)
+    slides = await handler.get_slides_metadata(include_hidden=include_hidden)
 
     return {
         "pptx_path": pptx_path,
-        "total_slides": handler.get_slide_count(),
+        "total_slides": await handler.get_slide_count(),
         "slides": slides,
     }

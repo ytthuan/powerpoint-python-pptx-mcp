@@ -8,6 +8,7 @@ from pptx import Presentation
 
 from ..core.pptx_handler import PPTXHandler
 from ..utils.validators import validate_pptx_path, validate_slide_number
+from ..utils.async_utils import run_in_thread
 
 
 def get_slide_tools() -> list[Tool]:
@@ -156,7 +157,7 @@ async def handle_add_slide(arguments: Dict[str, Any]) -> Dict[str, Any]:
     position = arguments.get("position")
     output_path = arguments.get("output_path")
 
-    pres = Presentation(str(pptx_path))
+    pres = await run_in_thread(Presentation, str(pptx_path))
 
     # Find layout
     layout = None
@@ -187,7 +188,7 @@ async def handle_add_slide(arguments: Dict[str, Any]) -> Dict[str, Any]:
     else:
         output_path = pptx_path.with_name(pptx_path.stem + ".edited.pptx")
 
-    pres.save(str(output_path))
+    await run_in_thread(pres.save, str(output_path))
 
     return {
         "success": True,
@@ -202,7 +203,7 @@ async def handle_delete_slide(arguments: Dict[str, Any]) -> Dict[str, Any]:
     slide_number = arguments["slide_number"]
     output_path = arguments.get("output_path")
 
-    pres = Presentation(str(pptx_path))
+    pres = await run_in_thread(Presentation, str(pptx_path))
     validate_slide_number(slide_number, len(pres.slides))
 
     # Delete slide (0-indexed)
@@ -216,7 +217,7 @@ async def handle_delete_slide(arguments: Dict[str, Any]) -> Dict[str, Any]:
     else:
         output_path = pptx_path.with_name(pptx_path.stem + ".edited.pptx")
 
-    pres.save(str(output_path))
+    await run_in_thread(pres.save, str(output_path))
 
     return {
         "success": True,
@@ -232,7 +233,7 @@ async def handle_duplicate_slide(arguments: Dict[str, Any]) -> Dict[str, Any]:
     arguments.get("position")
     output_path = arguments.get("output_path")
 
-    pres = Presentation(str(pptx_path))
+    pres = await run_in_thread(Presentation, str(pptx_path))
     validate_slide_number(slide_number, len(pres.slides))
 
     # Get source slide
@@ -257,7 +258,7 @@ async def handle_duplicate_slide(arguments: Dict[str, Any]) -> Dict[str, Any]:
     else:
         output_path = pptx_path.with_name(pptx_path.stem + ".edited.pptx")
 
-    pres.save(str(output_path))
+    await run_in_thread(pres.save, str(output_path))
 
     return {
         "success": True,
@@ -274,7 +275,7 @@ async def handle_change_slide_layout(arguments: Dict[str, Any]) -> Dict[str, Any
     layout_name = arguments["layout_name"]
     output_path = arguments.get("output_path")
 
-    pres = Presentation(str(pptx_path))
+    pres = await run_in_thread(Presentation, str(pptx_path))
     validate_slide_number(slide_number, len(pres.slides))
 
     slide = pres.slides[slide_number - 1]
@@ -302,7 +303,7 @@ async def handle_change_slide_layout(arguments: Dict[str, Any]) -> Dict[str, Any
     else:
         output_path = pptx_path.with_name(pptx_path.stem + ".edited.pptx")
 
-    pres.save(str(output_path))
+    await run_in_thread(pres.save, str(output_path))
 
     return {
         "success": True,
@@ -331,7 +332,7 @@ async def handle_set_slide_visibility(arguments: Dict[str, Any]) -> Dict[str, An
     else:
         output_path = pptx_path.with_name(pptx_path.stem + ".edited.pptx")
 
-    handler.save(output_path)
+    await handler.save(output_path)
 
     return {
         "success": True,

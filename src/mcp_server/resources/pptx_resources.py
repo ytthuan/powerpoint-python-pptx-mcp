@@ -8,13 +8,16 @@ from mcp.types import Resource
 from ..core.pptx_handler import PPTXHandler
 
 
-def list_pptx_resources(base_path: str | Path = ".") -> List[Resource]:
+async def list_pptx_resources(base_path: str | Path = ".") -> List[Resource]:
     """List all PPTX files as resources."""
     base_path = Path(base_path)
     resources = []
 
     # Search for PPTX files (case-insensitive for extension)
     pptx_files = []
+    # Run blocking glob in a thread if needed, but for now we'll do it here
+    # since it's usually fast enough for local files. 
+    # However, get_presentation_info() is now async, so we MUST be async.
     for pattern in ["*.pptx", "*.PPTX", "*.pptm", "*.PPTM"]:
         pptx_files.extend(list(base_path.rglob(pattern)))
 
@@ -24,7 +27,7 @@ def list_pptx_resources(base_path: str | Path = ".") -> List[Resource]:
     for pptx_path in pptx_files:
         try:
             handler = PPTXHandler(pptx_path)
-            info = handler.get_presentation_info()
+            info = await handler.get_presentation_info()
 
             resource_uri = f"pptx://{pptx_path.resolve()}"
             resources.append(
@@ -42,7 +45,7 @@ def list_pptx_resources(base_path: str | Path = ".") -> List[Resource]:
     return resources
 
 
-def get_pptx_resource(uri: str) -> Dict[str, Any]:
+async def get_pptx_resource(uri: str) -> Dict[str, Any]:
     """Get resource content for a PPTX file."""
     if not uri.startswith("pptx://"):
         raise ValueError(f"Invalid PPTX resource URI: {uri}")
@@ -55,7 +58,7 @@ def get_pptx_resource(uri: str) -> Dict[str, Any]:
         raise FileNotFoundError(f"PPTX file not found: {pptx_path}")
 
     handler = PPTXHandler(pptx_path)
-    info = handler.get_presentation_info()
+    info = await handler.get_presentation_info()
 
     # Return metadata as JSON
     return {

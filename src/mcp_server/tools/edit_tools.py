@@ -16,6 +16,7 @@ from ..utils.validators import (
     validate_size,
     validate_image_path,
 )
+from ..utils.async_utils import run_in_thread
 
 
 def get_edit_tools() -> list[Tool]:
@@ -354,7 +355,7 @@ async def handle_update_slide_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
     new_text = arguments["new_text"]
     output_path = arguments.get("output_path")
 
-    pres = Presentation(str(pptx_path))
+    pres = await run_in_thread(Presentation, str(pptx_path))
     validate_slide_number(slide_number, len(pres.slides))
 
     slide = pres.slides[slide_number - 1]
@@ -381,7 +382,7 @@ async def handle_update_slide_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
     else:
         output_path = pptx_path.with_name(pptx_path.stem + ".edited.pptx")
 
-    pres.save(str(output_path))
+    await run_in_thread(pres.save, str(output_path))
 
     return {
         "success": True,
@@ -399,7 +400,7 @@ async def handle_replace_slide_image(arguments: Dict[str, Any]) -> Dict[str, Any
     new_image_path = validate_image_path(arguments["new_image_path"])
     output_path = arguments.get("output_path")
 
-    pres = Presentation(str(pptx_path))
+    pres = await run_in_thread(Presentation, str(pptx_path))
     validate_slide_number(slide_number, len(pres.slides))
 
     slide = pres.slides[slide_number - 1]
@@ -436,7 +437,7 @@ async def handle_replace_slide_image(arguments: Dict[str, Any]) -> Dict[str, Any
     else:
         output_path = pptx_path.with_name(pptx_path.stem + ".edited.pptx")
 
-    pres.save(str(output_path))
+    await run_in_thread(pres.save, str(output_path))
 
     return {
         "success": True,
@@ -454,7 +455,7 @@ async def handle_add_text_box(arguments: Dict[str, Any]) -> Dict[str, Any]:
     size = validate_size(arguments.get("size"))
     output_path = arguments.get("output_path")
 
-    pres = Presentation(str(pptx_path))
+    pres = await run_in_thread(Presentation, str(pptx_path))
     validate_slide_number(slide_number, len(pres.slides))
 
     slide = pres.slides[slide_number - 1]
@@ -475,7 +476,7 @@ async def handle_add_text_box(arguments: Dict[str, Any]) -> Dict[str, Any]:
     else:
         output_path = pptx_path.with_name(pptx_path.stem + ".edited.pptx")
 
-    pres.save(str(output_path))
+    await run_in_thread(pres.save, str(output_path))
 
     return {
         "success": True,
@@ -494,7 +495,7 @@ async def handle_add_image(arguments: Dict[str, Any]) -> Dict[str, Any]:
     size = validate_size(arguments.get("size"))
     output_path = arguments.get("output_path")
 
-    pres = Presentation(str(pptx_path))
+    pres = await run_in_thread(Presentation, str(pptx_path))
     validate_slide_number(slide_number, len(pres.slides))
 
     slide = pres.slides[slide_number - 1]
@@ -513,7 +514,7 @@ async def handle_add_image(arguments: Dict[str, Any]) -> Dict[str, Any]:
     else:
         output_path = pptx_path.with_name(pptx_path.stem + ".edited.pptx")
 
-    pres.save(str(output_path))
+    await run_in_thread(pres.save, str(output_path))
 
     return {
         "success": True,
@@ -533,7 +534,7 @@ async def handle_replace_slide_content(arguments: Dict[str, Any]) -> Dict[str, A
     in_place = arguments.get("in_place", False)
     output_path = arguments.get("output_path")
 
-    pres = Presentation(str(pptx_path))
+    pres = await run_in_thread(Presentation, str(pptx_path))
     validate_slide_number(slide_number, len(pres.slides))
 
     slide = pres.slides[slide_number - 1]
@@ -610,7 +611,7 @@ async def handle_replace_slide_content(arguments: Dict[str, Any]) -> Dict[str, A
         os.close(fd)
         tmp_file = Path(tmp_path)
         try:
-            pres.save(str(tmp_file))
+            await run_in_thread(pres.save, str(tmp_file))
             os.replace(str(tmp_file), str(pptx_path))
             final_path = str(pptx_path)
         finally:
@@ -624,7 +625,7 @@ async def handle_replace_slide_content(arguments: Dict[str, Any]) -> Dict[str, A
             output_path = Path(output_path)
         else:
             output_path = pptx_path.with_name(pptx_path.stem + ".replaced.pptx")
-        pres.save(str(output_path))
+        await run_in_thread(pres.save, str(output_path))
         final_path = str(output_path)
 
     return {
@@ -645,7 +646,7 @@ async def handle_update_slide_content(arguments: Dict[str, Any]) -> Dict[str, An
     in_place = arguments.get("in_place", False)
     output_path = arguments.get("output_path")
 
-    pres = Presentation(str(pptx_path))
+    pres = await run_in_thread(Presentation, str(pptx_path))
     validate_slide_number(slide_number, len(pres.slides))
 
     slide = pres.slides[slide_number - 1]
@@ -715,7 +716,7 @@ async def handle_update_slide_content(arguments: Dict[str, Any]) -> Dict[str, An
         os.close(fd)
         tmp_file = Path(tmp_path)
         try:
-            pres.save(str(tmp_file))
+            await run_in_thread(pres.save, str(tmp_file))
             os.replace(str(tmp_file), str(pptx_path))
             final_path = str(pptx_path)
         finally:
@@ -729,7 +730,7 @@ async def handle_update_slide_content(arguments: Dict[str, Any]) -> Dict[str, An
             output_path = Path(output_path)
         else:
             output_path = pptx_path.with_name(pptx_path.stem + ".updated.pptx")
-        pres.save(str(output_path))
+        await run_in_thread(pres.save, str(output_path))
         final_path = str(output_path)
 
     result = {

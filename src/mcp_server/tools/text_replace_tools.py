@@ -13,6 +13,7 @@ from pptx import Presentation
 from ..core.pptx_handler import PPTXHandler
 from ..core.safe_editor import update_notes_safe, update_notes_safe_in_place
 from ..utils.validators import validate_pptx_path, validate_slide_number
+from ..utils.async_utils import run_in_thread
 
 logger = logging.getLogger(__name__)
 
@@ -353,7 +354,8 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
 
         # Process based on target
         if target == "slide_notes":
-            result = _replace_in_notes(
+            result = await run_in_thread(
+                _replace_in_notes,
                 pptx_path,
                 pattern,
                 replacement,
@@ -379,14 +381,14 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
 
             # Apply changes
             if in_place:
-                update_notes_safe_in_place(pptx_path, result["updates"])
+                await run_in_thread(update_notes_safe_in_place, pptx_path, result["updates"])
                 final_path = str(pptx_path)
             else:
                 if output_path:
                     output_path = Path(output_path)
                 else:
                     output_path = pptx_path.with_name(pptx_path.stem + ".replaced.pptx")
-                update_notes_safe(pptx_path, result["updates"], output_path)
+                await run_in_thread(update_notes_safe, pptx_path, result["updates"], output_path)
                 final_path = str(output_path)
 
             return {
@@ -401,7 +403,9 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
             }
 
         elif target == "slide_content":
-            pres, result = _replace_in_content(
+            # Run the blocking replacement logic in a thread
+            pres, result = await run_in_thread(
+                _replace_in_content,
                 pptx_path,
                 pattern,
                 replacement,
@@ -438,7 +442,7 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
                 os.close(fd)
                 tmp_file = Path(tmp_path)
                 try:
-                    pres.save(str(tmp_file))
+                    await run_in_thread(pres.save, str(tmp_file))
                     os.replace(str(tmp_file), str(pptx_path))
                     final_path = str(pptx_path)
                 finally:
@@ -454,7 +458,7 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
                     output_path = Path(output_path)
                 else:
                     output_path = pptx_path.with_name(pptx_path.stem + ".replaced.pptx")
-                pres.save(str(output_path))
+                await run_in_thread(pres.save, str(output_path))
                 final_path = str(output_path)
 
             return {

@@ -307,10 +307,6 @@ MCP_CACHE_SIZE=100
 # Logging
 MCP_LOG_LEVEL=INFO
 MCP_LOG_FILE=/var/log/mcp-server.log
-
-# Azure (for note processing)
-AZURE_AI_PROJECT_ENDPOINT=https://...
-MODEL_DEPLOYMENT_NAME=gpt-4
 ```
 
 ### Configuration File (.env)

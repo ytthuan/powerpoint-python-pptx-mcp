@@ -12,6 +12,7 @@ from pptx.enum.shapes import MSO_SHAPE_TYPE
 from ..cache import PresentationCache
 from ..config import get_config
 from ..utils.validators import validate_pptx_path, validate_slide_number
+from ..utils.async_utils import run_in_thread
 
 
 class PPTXHandler:
@@ -47,9 +48,8 @@ class PPTXHandler:
         self._cache = cache if self._enable_cache else None
         self._is_modified = False
 
-    @property
-    def presentation(self) -> Presentation:
-        """Lazy load presentation with optional caching."""
+    async def get_presentation(self) -> Presentation:
+        """Load presentation with optional caching."""
         if self._presentation is None:
             # Try to get from cache first
             if self._cache and self._enable_cache:
@@ -58,13 +58,30 @@ class PPTXHandler:
                     self._presentation = cached
                     return self._presentation
 
-            # Load from file
-            self._presentation = Presentation(str(self.pptx_path))
+            # Load from file (blocking call, run in thread)
+            self._presentation = await run_in_thread(Presentation, str(self.pptx_path))
 
             # Cache it
             if self._cache and self._enable_cache:
                 self._cache.cache_presentation(self.pptx_path, self._presentation)
 
+        return self._presentation
+
+    @property
+    def presentation(self) -> Presentation:
+        """Access presentation synchronously.
+        
+        Note: This will raise RuntimeError if the presentation hasn't been loaded yet
+        via get_presentation(). Use get_presentation() in async contexts.
+        """
+        if self._presentation is None:
+            # For backward compatibility, we'll load it synchronously but log a warning
+            import logging
+            logging.getLogger(__name__).warning(
+                "Synchronous access to PPTXHandler.presentation is deprecated. "
+                "Use await handler.get_presentation() instead."
+            )
+            self._presentation = Presentation(str(self.pptx_path))
         return self._presentation
 
     def reload(self):
@@ -79,11 +96,12 @@ class PPTXHandler:
         if self._cache and self._enable_cache:
             self._cache.invalidate(self.pptx_path)
 
-    def get_slide_count(self) -> int:
+    async def get_slide_count(self) -> int:
         """Get total number of slides."""
-        return len(self.presentation.slides)
+        pres = await self.get_presentation()
+        return len(pres.slides)
 
-    def is_slide_hidden(self, slide_number: int) -> bool:
+    async def is_slide_hidden(self, slide_number: int) -> bool:
         """Check if a slide is hidden.
 
         Args:
@@ -92,8 +110,10 @@ class PPTXHandler:
         Returns:
             True if slide is hidden, False if visible
         """
-        validate_slide_number(slide_number, self.get_slide_count())
-        slide = self.presentation.slides[slide_number - 1]
+        slide_count = await self.get_slide_count()
+        validate_slide_number(slide_number, slide_count)
+        pres = await self.get_presentation()
+        slide = pres.slides[slide_number - 1]
 
         # Check for 'show' attribute in two locations:
         # 1. On the <p:sld> element (the slide part)
@@ -108,7 +128,7 @@ class PPTXHandler:
         # Check location 2: <p:sldId> element
         try:
             # prs.slides._sldIdLst is the list of <p:sldId> elements
-            sld_id_lst = self.presentation.slides._sldIdLst
+            sld_id_lst = pres.slides._sldIdLst
             if slide_number - 1 < len(sld_id_lst):
                 sld_id_element = sld_id_lst[slide_number - 1]
                 show_attr = sld_id_element.get("show")
@@ -121,15 +141,17 @@ class PPTXHandler:
 
         return False
 
-    def set_slide_hidden(self, slide_number: int, hidden: bool):
+    async def set_slide_hidden(self, slide_number: int, hidden: bool):
         """Set slide visibility.
 
         Args:
             slide_number: Slide number (1-indexed)
             hidden: True to hide the slide, False to show it
         """
-        validate_slide_number(slide_number, self.get_slide_count())
-        slide = self.presentation.slides[slide_number - 1]
+        slide_count = await self.get_slide_count()
+        validate_slide_number(slide_number, slide_count)
+        pres = await self.get_presentation()
+        slide = pres.slides[slide_number - 1]
 
         # Set on both locations for maximum compatibility
         if hidden:
@@ -137,7 +159,7 @@ class PPTXHandler:
             slide.element.set("show", "0")
             # Set on <p:sldId>
             try:
-                sld_id_lst = self.presentation.slides._sldIdLst
+                sld_id_lst = pres.slides._sldIdLst
                 sld_id_lst[slide_number - 1].set("show", "0")
             except (AttributeError, IndexError):
                 pass
@@ -147,7 +169,7 @@ class PPTXHandler:
                 del slide.element.attrib["show"]
             # Remove from <p:sldId>
             try:
-                sld_id_lst = self.presentation.slides._sldIdLst
+                sld_id_lst = pres.slides._sldIdLst
                 sld_id_element = sld_id_lst[slide_number - 1]
                 if "show" in sld_id_element.attrib:
                     del sld_id_element.attrib["show"]
@@ -157,15 +179,16 @@ class PPTXHandler:
         # Mark as modified
         self._is_modified = True
 
-    def get_presentation_info(self) -> Dict[str, Any]:
+    async def get_presentation_info(self) -> Dict[str, Any]:
         """Get presentation metadata."""
-        slide_count = self.get_slide_count()
+        slide_count = await self.get_slide_count()
         hidden_count = 0
         for i in range(1, slide_count + 1):
-            if self.is_slide_hidden(i):
+            if await self.is_slide_hidden(i):
                 hidden_count += 1
         visible_count = slide_count - hidden_count
 
+        pres = await self.get_presentation()
         return {
             "file_path": str(self.pptx_path),
             "file_name": self.pptx_path.name,
@@ -173,15 +196,17 @@ class PPTXHandler:
             "visible_slides": visible_count,
             "hidden_slides": hidden_count,
             "slide_size": {
-                "width": self.presentation.slide_width,
-                "height": self.presentation.slide_height,
+                "width": pres.slide_width,
+                "height": pres.slide_height,
             },
         }
 
-    def get_slide_text(self, slide_number: int) -> str:
+    async def get_slide_text(self, slide_number: int) -> str:
         """Extract all text from a slide."""
-        validate_slide_number(slide_number, self.get_slide_count())
-        slide = self.presentation.slides[slide_number - 1]
+        slide_count = await self.get_slide_count()
+        validate_slide_number(slide_number, slide_count)
+        pres = await self.get_presentation()
+        slide = pres.slides[slide_number - 1]
         return self._extract_text_from_slide(slide)
 
     def _extract_text_from_slide(self, slide) -> str:
@@ -213,10 +238,12 @@ class PPTXHandler:
                     texts.append(" | ".join(row_texts))
         return texts
 
-    def get_slide_content(self, slide_number: int) -> Dict[str, Any]:
+    async def get_slide_content(self, slide_number: int) -> Dict[str, Any]:
         """Get comprehensive content from a slide."""
-        validate_slide_number(slide_number, self.get_slide_count())
-        slide = self.presentation.slides[slide_number - 1]
+        slide_count = await self.get_slide_count()
+        validate_slide_number(slide_number, slide_count)
+        pres = await self.get_presentation()
+        slide = pres.slides[slide_number - 1]
 
         # Extract title
         title = ""
@@ -255,13 +282,15 @@ class PPTXHandler:
             "title": title,
             "text": text,
             "shapes": shapes_info,
-            "hidden": self.is_slide_hidden(slide_number),
+            "hidden": await self.is_slide_hidden(slide_number),
         }
 
-    def get_slide_images(self, slide_number: int) -> List[Dict[str, Any]]:
+    async def get_slide_images(self, slide_number: int) -> List[Dict[str, Any]]:
         """Get image information from a slide."""
-        validate_slide_number(slide_number, self.get_slide_count())
-        slide = self.presentation.slides[slide_number - 1]
+        slide_count = await self.get_slide_count()
+        validate_slide_number(slide_number, slide_count)
+        pres = await self.get_presentation()
+        slide = pres.slides[slide_number - 1]
 
         images = []
         for idx, shape in enumerate(slide.shapes):
@@ -296,11 +325,14 @@ class PPTXHandler:
                         images.append(image_info)
         return images
 
-    def get_notes(self, slide_number: Optional[int] = None) -> Dict[str, Any]:
+    async def get_notes(self, slide_number: Optional[int] = None) -> Dict[str, Any]:
         """Get notes for slide(s)."""
+        slide_count = await self.get_slide_count()
+        pres = await self.get_presentation()
+
         if slide_number is not None:
-            validate_slide_number(slide_number, self.get_slide_count())
-            slide = self.presentation.slides[slide_number - 1]
+            validate_slide_number(slide_number, slide_count)
+            slide = pres.slides[slide_number - 1]
             notes_text = ""
             if slide.has_notes_slide:
                 try:
@@ -314,7 +346,7 @@ class PPTXHandler:
         else:
             # Return all notes
             slides = []
-            for idx, slide in enumerate(self.presentation.slides, start=1):
+            for idx, slide in enumerate(pres.slides, start=1):
                 notes_text = ""
                 if slide.has_notes_slide:
                     try:
@@ -324,7 +356,7 @@ class PPTXHandler:
                 slides.append({"slide": idx, "notes": notes_text})
             return {"slides": slides}
 
-    def get_slides_metadata(self, include_hidden: bool = True) -> List[Dict[str, Any]]:
+    async def get_slides_metadata(self, include_hidden: bool = True) -> List[Dict[str, Any]]:
         """Get metadata for all slides including their visibility status.
 
         Args:
@@ -334,15 +366,16 @@ class PPTXHandler:
             List of slide metadata dictionaries
         """
         slides_metadata = []
-        slide_count = self.get_slide_count()
+        slide_count = await self.get_slide_count()
+        pres = await self.get_presentation()
 
         for i in range(1, slide_count + 1):
-            is_hidden = self.is_slide_hidden(i)
+            is_hidden = await self.is_slide_hidden(i)
 
             if not include_hidden and is_hidden:
                 continue
 
-            slide = self.presentation.slides[i - 1]
+            slide = pres.slides[i - 1]
             title = ""
             if slide.shapes.title:
                 title = slide.shapes.title.text
@@ -358,14 +391,15 @@ class PPTXHandler:
 
         return slides_metadata
 
-    def save(self, output_path: Optional[str | Path] = None):
+    async def save(self, output_path: Optional[str | Path] = None):
         """Save presentation to file.
 
         Args:
             output_path: Optional output path. If None, saves to original path.
         """
         save_path = Path(output_path) if output_path else self.pptx_path
-        self.presentation.save(str(save_path))
+        pres = await self.get_presentation()
+        await run_in_thread(pres.save, str(save_path))
 
         # Invalidate cache after save
         if self._cache and self._enable_cache:

@@ -16,6 +16,7 @@ from ..utils.validators import (
     validate_slide_numbers,
     validate_batch_updates,
 )
+from ..utils.async_utils import run_in_thread
 
 
 def get_notes_tools() -> list[Tool]:
@@ -219,7 +220,7 @@ async def handle_read_notes(arguments: Dict[str, Any]) -> Dict[str, Any]:
     slide_number = arguments.get("slide_number")
 
     handler = PPTXHandler(pptx_path)
-    return handler.get_notes(slide_number)
+    return await handler.get_notes(slide_number)
 
 
 async def handle_update_notes(arguments: Dict[str, Any]) -> Dict[str, Any]:
@@ -232,14 +233,15 @@ async def handle_update_notes(arguments: Dict[str, Any]) -> Dict[str, Any]:
 
     # Validate slide number
     handler = PPTXHandler(pptx_path)
-    validate_slide_number(slide_number, handler.get_slide_count())
+    slide_count = await handler.get_slide_count()
+    validate_slide_number(slide_number, slide_count)
 
     # Prepare updates
     updates = [(slide_number, notes_text)]
 
     if in_place:
         # Update in-place using safe zip-based editing
-        update_notes_safe_in_place(pptx_path, updates)
+        await run_in_thread(update_notes_safe_in_place, pptx_path, updates)
         return {
             "success": True,
             "pptx_path": str(pptx_path),
@@ -270,7 +272,7 @@ async def handle_update_notes(arguments: Dict[str, Any]) -> Dict[str, Any]:
         try:
             from ..core.safe_editor import update_notes_safe
 
-            update_notes_safe(pptx_path, updates, output_path)
+            await run_in_thread(update_notes_safe, pptx_path, updates, output_path)
         finally:
             if tmp_path.exists():
                 tmp_path.unlink()
@@ -314,7 +316,7 @@ async def handle_read_notes_batch(arguments: Dict[str, Any]) -> Dict[str, Any]:
             )
 
         handler = PPTXHandler(pptx_path)
-        max_slides = handler.get_slide_count()
+        max_slides = await handler.get_slide_count()
 
         # Determine which slides to read
         if slide_range:
@@ -329,9 +331,10 @@ async def handle_read_notes_batch(arguments: Dict[str, Any]) -> Dict[str, Any]:
 
         # Read notes for all specified slides
         results = []
+        pres = await handler.get_presentation()
         for slide_num in slide_numbers:
             notes_text = ""
-            slide = handler.presentation.slides[slide_num - 1]
+            slide = pres.slides[slide_num - 1]
             if slide.has_notes_slide:
                 try:
                     notes_text = slide.notes_slide.notes_text_frame.text
@@ -379,7 +382,7 @@ async def handle_update_notes_batch(arguments: Dict[str, Any]) -> Dict[str, Any]
 
     # Validate updates
     handler = PPTXHandler(pptx_path)
-    max_slides = handler.get_slide_count()
+    max_slides = await handler.get_slide_count()
     validated_updates = validate_batch_updates(updates, max_slides)
 
     # Prepare updates for safe_editor
@@ -388,7 +391,7 @@ async def handle_update_notes_batch(arguments: Dict[str, Any]) -> Dict[str, Any]
     try:
         if in_place:
             # Update in-place using safe zip-based editing
-            update_notes_safe_in_place(pptx_path, update_tuples)
+            await run_in_thread(update_notes_safe_in_place, pptx_path, update_tuples)
             return {
                 "success": True,
                 "pptx_path": str(pptx_path),
@@ -405,7 +408,7 @@ async def handle_update_notes_batch(arguments: Dict[str, Any]) -> Dict[str, Any]
 
             from ..core.safe_editor import update_notes_safe
 
-            update_notes_safe(pptx_path, update_tuples, output_path)
+            await run_in_thread(update_notes_safe, pptx_path, update_tuples, output_path)
 
             return {
                 "success": True,
@@ -444,7 +447,7 @@ async def handle_process_notes_workflow(arguments: Dict[str, Any]) -> Dict[str, 
         }
 
     handler = PPTXHandler(pptx_path)
-    max_slides = handler.get_slide_count()
+    max_slides = await handler.get_slide_count()
 
     # Validate and format all notes
     formatted_updates = []

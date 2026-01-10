@@ -48,9 +48,7 @@ docker-compose -f docker/docker-compose.yml up -d
 docker compose -f docker/docker-compose.yml up --build
 
 # PPTX files: place them in ./desks on the host; they mount to /workspace/desks in the container.
-# Optional: set Azure env for automated notes
-# export AZURE_AI_PROJECT_ENDPOINT="https://..."
-# export MODEL_DEPLOYMENT_NAME="..."
+
 ```
 
 ### Connecting AI Agents
@@ -250,9 +248,6 @@ MCP_CACHE_SIZE=100
 MCP_LOG_LEVEL=INFO
 MCP_LOG_FILE=/var/log/mcp-server.log
 
-# Azure AI (for automated note processing)
-AZURE_AI_PROJECT_ENDPOINT=https://...
-MODEL_DEPLOYMENT_NAME=gpt-4
 ```
 
 ## Documentation
@@ -350,4 +345,3 @@ Contributions welcome! Please:
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/)
 - [GitHub Agent Skills Documentation](https://docs.github.com/en/copilot/concepts/agents/about-agent-skills)
 - [python-pptx Documentation](https://python-pptx.readthedocs.io/)
-- [Azure AI Documentation](https://learn.microsoft.com/en-us/azure/ai-services/)

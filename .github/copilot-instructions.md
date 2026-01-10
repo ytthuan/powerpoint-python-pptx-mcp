@@ -2,20 +2,19 @@
 
 ## Project context
 
-This repository is a **project for building automated processes for PPTX notes and more**. It includes tools and scripts for processing, translating, and managing PowerPoint speaker notes using Azure Foundry Models Response API.
+This repository is a **project for building automated processes for PPTX notes and more**. It includes an MCP server for processing, managing, and updating PowerPoint speaker notes.
 
 The project includes:
-- Automated PPTX speaker notes processing with translation and summarization
-- Integration with Azure Foundry Models Response API for AI-powered note generation
+- Automated PPTX speaker notes processing via MCP server tools
 - Utilities for reading, updating, and managing PPTX files
-- Support for multi-language note processing (Vietnamese/English)
+- Support for multi-language note processing (Vietnamese/English - can be changed as needed)
 
 Primary audience: Developers and content creators working with PowerPoint presentations.
 
 ## What to generate
 
 - Focus on building and improving automated PPTX processing tools and scripts.
-- When working with speaker notes, they should be written in **Vietnamese** (or target language), using a **casual, conversational** tone suitable for a live presentation.
+- When working with speaker notes, they should be written in **Vietnamese** (or target language - can be changed as needed), using a **casual, conversational** tone suitable for a live presentation.
 - Extend and improve the automation capabilities of the project.
 
 ## Pronouns and voice (very important)
@@ -43,45 +42,11 @@ Primary audience: Developers and content creators working with PowerPoint presen
 
 When the user asks to translate or edit speaker notes inside a `.pptx`:
 
-- Prefer using the existing CLI at `scripts/pptx_notes.py` for basic operations.
-- Use `scripts/update_notes_format.py` for automated processing with Azure Foundry Models Response API.
+- Use the MCP server tools for all operations.
 - **Default engine:** use `--engine zip` (this edits only `notesSlide*.xml` parts inside the PPTX zip). This is the safest option and preserves slide structure, animations, and transitions.
 - Avoid using the `python-pptx` write path unless the user explicitly requests it (it rewrites the whole PPTX package and can cause unintended changes in complex decks).
 - Never change slide content or layout; only change speaker notes. If a slide note is empty, keep it empty.
 - Use Vietnamese speaker note style per this file: address as "anh/chị", use "chúng ta", keep sentences short and speakable.
-
-### Automated Note Processing with Azure Foundry Models
-
-The project includes `scripts/update_notes_format.py` which uses Azure Foundry Models Response API to automatically:
-
-1. **Long Version Creation (`create_long_version`)**:
-   - Detects the language of input notes (Vietnamese or English)
-   - Translates English notes to Vietnamese (or vice versa) if needed
-   - Skips translation if notes are already in the target language
-   - Uses Azure Foundry Models Response API for high-quality translation
-   - Maintains conversational, speakable tone suitable for presentations
-
-2. **Short Version Creation (`create_short_version`)**:
-   - Generates concise summaries (30-50% of original length)
-   - Preserves key points and main ideas
-   - Maintains conversational tone
-   - Works with any input language, outputs in target language (default: Vietnamese)
-   - Uses Azure Foundry Models Response API for intelligent summarization
-
-3. **Automated Workflow**:
-   - Processes JSON dumps of PPTX notes
-   - Automatically extracts original text if notes are already formatted
-   - Generates both short and long versions for each slide
-   - Can automatically update PPTX files after processing
-   - Processes slides in parallel batches for improved performance
-   - Tracks progress in status file for resume capability
-
-4. **Parallel Processing & Status Tracking**:
-   - Processes multiple slides concurrently (configurable batch size)
-   - Creates status tracking file (`.status.json`) with per-slide status
-   - Supports resume mode to continue from interruptions
-   - Thread-safe status updates during parallel processing
-   - Dry-run mode for testing without API calls
 
 ### Note Format: Long and Short Versions
 
@@ -107,13 +72,11 @@ When translating or creating speaker notes for slides:
   - Both versions must be in conversational, speakable language
 
 4. **Workflow**:
-   - **Automated**: Use `scripts/update_notes_format.py` to process notes with Azure Foundry Models
-     - Use `--batch-size` to control parallel processing (default: 5)
-     - Use `--resume` to continue after interruptions
-     - Use `--dry-run` to test without API calls
-   - **Manual**: When updating notes manually: first dump current notes, then create a separate JSON file with long/short versions for the target slides
-   - Review the formatted notes before applying them back to the PPTX
-   - Apply using the zip engine to preserve animations
+   - **Automated**: AI agents handle translation and summarization using their own LLM capabilities and orchestrate tool calls.
+   - **Manual**: When updating notes manually, use the appropriate MCP tools like `update_notes` or `update_notes_batch`.
+   - Review the formatted notes before applying them back to the PPTX.
+   - Use safe zip-based editing tools where possible to preserve animations.
+
 ### Commands
 - Always use `python3` instead of `python` to run the commands.
 - Always use `pip3` instead of `pip` to install dependencies.
@@ -121,28 +84,6 @@ When translating or creating speaker notes for slides:
 	- `python3 -m venv .venv`
 	- `source .venv/bin/activate`
 	- `pip3 install -r requirements.txt`
-	- Set environment variables:
-	  - `AZURE_AI_PROJECT_ENDPOINT`: Your Azure AI Project endpoint
-	  - `MODEL_DEPLOYMENT_NAME`: Your model deployment name
-
-- Dump notes to JSON:
-	- `python3 scripts/pptx_notes.py dump "path/to/deck.pptx"`
-
-- Process notes with Azure Foundry Models (automated translation and summarization):
-	- `python3 scripts/update_notes_format.py --input "path/to/notes.json" --pptx "path/to/deck.pptx" --output-language vietnamese`
-	- Options:
-	  - `--endpoint`: Azure AI Project endpoint (or use env var)
-	  - `--deployment-name`: Model deployment name (or use env var)
-	  - `--output-language`: Target language (vietnamese/english, default: vietnamese)
-	  - `--pptx`: PPTX file to update automatically after processing
-	  - `--in-place`: Update PPTX in-place (default: creates new file)
-	  - `--batch-size`: Number of slides to process in parallel (default: 5)
-	  - `--status-file`: Path to status tracking file (default: input_file.status.json)
-	  - `--resume`: Resume from status file, skipping already successful slides
-	  - `--dry-run`: Test processing without making API calls
-
-- Apply updates manually **in-place** (safe overwrite via temp file):
-	- `python3 scripts/pptx_notes.py apply "path/to/deck.pptx" "path/to/updates.json" --in-place --engine zip`
 
 ### Update format
 
