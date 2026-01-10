@@ -7,7 +7,7 @@ and ensure fair resource usage.
 import asyncio
 import logging
 import time
-from typing import Dict, Optional
+from typing import Optional
 
 from .config import get_config
 from .exceptions import PPTXError
@@ -119,7 +119,7 @@ class TokenBucketRateLimiter:
                 tokens_needed = tokens - self._tokens
                 wait_time = tokens_needed * (self.per / self.rate)
                 
-                # Release lock while waiting
+                # Wait for tokens to refill (lock remains held)
                 logger.debug(f"Rate limit reached, waiting {wait_time:.2f}s")
                 await asyncio.sleep(wait_time)
     

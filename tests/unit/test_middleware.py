@@ -2,7 +2,7 @@
 
 import pytest
 import asyncio
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import patch
 
 from mcp_server.middleware import (
     LoggingMiddleware,

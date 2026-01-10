@@ -12,7 +12,7 @@ from mcp_server.rate_limiter import (
     get_rate_limiter,
     reset_rate_limiter,
 )
-from mcp_server.config import Config, PerformanceConfig
+from mcp_server.config import Config
 
 
 @pytest.fixture(autouse=True)
@@ -164,7 +164,7 @@ class TestTokenBucketRateLimiter:
 
         # Start multiple concurrent acquire operations
         tasks = [acquire_tokens() for _ in range(3)]
-        results = await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks)
 
         # After 3 acquires of 3 tokens each, should have 1 token left
         # (or be in the process of refilling)

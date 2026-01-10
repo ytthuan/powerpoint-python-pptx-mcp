@@ -7,7 +7,7 @@ import asyncio
 import logging
 import pytest
 
-from mcp_server.server import middleware_pipeline, register_all_tools
+from mcp_server.server import middleware_pipeline
 from mcp_server.tools.registry import get_tool_registry
 from mcp_server.config import get_config
 

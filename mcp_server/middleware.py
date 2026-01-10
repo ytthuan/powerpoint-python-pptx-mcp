@@ -6,7 +6,6 @@ allowing for cross-cutting concerns like logging, validation, and metrics.
 
 import logging
 import time
-import uuid
 from typing import Any, Callable, Dict, Optional, Protocol, Awaitable
 
 from .logging_config import get_logger, set_correlation_id
@@ -227,7 +226,7 @@ class MetricsMiddleware:
         try:
             result = await next_handler(name, args)
             
-            elapsed_time = time.time() - start_time
+            elapsed_time = (time.time() - start_time) * 1000
             self.metrics_collector.record_operation(
                 operation=f"tool.{name}",
                 duration=elapsed_time,
@@ -237,7 +236,7 @@ class MetricsMiddleware:
             return result
             
         except Exception as e:
-            elapsed_time = time.time() - start_time
+            elapsed_time = (time.time() - start_time) * 1000
             self.metrics_collector.record_operation(
                 operation=f"tool.{name}",
                 duration=elapsed_time,
