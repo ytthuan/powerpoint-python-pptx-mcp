@@ -1,6 +1,7 @@
 from pptx import Presentation
 from pathlib import Path
 
+
 def generate_test_presentation():
     prs = Presentation()
     for i in range(1, 6):
@@ -9,9 +10,9 @@ def generate_test_presentation():
         # Add some text to the body
         if slide.placeholders:
             for ph in slide.placeholders:
-                if ph.placeholder_format.idx == 1: # body
+                if ph.placeholder_format.idx == 1:  # body
                     ph.text = f"This is the body text for slide {i}."
-        
+
         # Add speaker notes
         notes_slide = slide.notes_slide
         notes_slide.notes_text_frame.text = f"Speaker notes for slide {i}."
@@ -20,6 +21,7 @@ def generate_test_presentation():
     output_path.parent.mkdir(parents=True, exist_ok=True)
     prs.save(str(output_path))
     print(f"Created {output_path}")
+
 
 if __name__ == "__main__":
     generate_test_presentation()

@@ -11,10 +11,10 @@ from pathlib import Path
 
 async def test_mcp_server():
     """Test the MCP server by sending initialization and list_tools requests."""
-    
+
     print("🧪 Testing PPTX MCP Server...")
     print("=" * 60)
-    
+
     # Start the server process with src/ layout on PYTHONPATH
     repo_root = Path(__file__).resolve().parents[2]
     src_path = repo_root / "src"
@@ -26,9 +26,7 @@ async def test_mcp_server():
     env = os.environ.copy()
     existing_pythonpath = env.get("PYTHONPATH")
     env["PYTHONPATH"] = (
-        f"{src_path}{os.pathsep}{existing_pythonpath}"
-        if existing_pythonpath
-        else str(src_path)
+        f"{src_path}{os.pathsep}{existing_pythonpath}" if existing_pythonpath else str(src_path)
     )
 
     process = subprocess.Popen(
@@ -41,7 +39,7 @@ async def test_mcp_server():
         cwd=repo_root,
         env=env,
     )
-    
+
     try:
         # Test 1: Initialize
         print("\n1️⃣  Testing initialization...")
@@ -52,58 +50,51 @@ async def test_mcp_server():
             "params": {
                 "protocolVersion": "2024-11-05",
                 "capabilities": {},
-                "clientInfo": {
-                    "name": "test-client",
-                    "version": "1.0.0"
-                }
-            }
+                "clientInfo": {"name": "test-client", "version": "1.0.0"},
+            },
         }
-        
+
         request_str = json.dumps(init_request) + "\n"
         process.stdin.write(request_str)
         process.stdin.flush()
-        
+
         # Read response (with timeout)
         try:
             response_line = await asyncio.wait_for(
-                asyncio.to_thread(process.stdout.readline),
-                timeout=5.0
+                asyncio.to_thread(process.stdout.readline), timeout=5.0
             )
-            
+
             if response_line:
                 response = json.loads(response_line.strip())
                 if "result" in response:
                     print("   ✅ Initialization successful!")
-                    print(f"   📋 Server info: {response.get('result', {}).get('serverInfo', {}).get('name', 'Unknown')}")
+                    print(
+                        f"   📋 Server info: {response.get('result', {}).get('serverInfo', {}).get('name', 'Unknown')}"
+                    )
                 else:
                     print(f"   ❌ Initialization failed: {response}")
                     return False
             else:
                 print("   ❌ No response received")
                 return False
-                
+
         except asyncio.TimeoutError:
             print("   ❌ Timeout waiting for response")
             return False
-        
+
         # Test 2: List tools
         print("\n2️⃣  Testing list_tools...")
-        list_tools_request = {
-            "jsonrpc": "2.0",
-            "id": 2,
-            "method": "tools/list"
-        }
-        
+        list_tools_request = {"jsonrpc": "2.0", "id": 2, "method": "tools/list"}
+
         request_str = json.dumps(list_tools_request) + "\n"
         process.stdin.write(request_str)
         process.stdin.flush()
-        
+
         try:
             response_line = await asyncio.wait_for(
-                asyncio.to_thread(process.stdout.readline),
-                timeout=5.0
+                asyncio.to_thread(process.stdout.readline), timeout=5.0
             )
-            
+
             if response_line:
                 response = json.loads(response_line.strip())
                 if "result" in response:
@@ -120,11 +111,11 @@ async def test_mcp_server():
             else:
                 print("   ❌ No response received")
                 return False
-                
+
         except asyncio.TimeoutError:
             print("   ❌ Timeout waiting for response")
             return False
-            
+
     except Exception as e:
         print(f"   ❌ Error during test: {e}")
         return False
@@ -141,7 +132,7 @@ async def test_mcp_server():
                     pass  # Process may have already terminated
         except (PermissionError, ProcessLookupError):
             pass  # Process may have already terminated or we don't have permission
-        
+
         # Check for errors in stderr
         try:
             stderr_output = process.stderr.read()
@@ -156,6 +147,7 @@ def test_server_import():
     print("\n0️⃣  Testing server module import...")
     try:
         from mcp_server.server import server
+
         print("   ✅ Server module imported successfully")
         return True
     except Exception as e:
@@ -168,7 +160,7 @@ def test_dependencies():
     print("\n📦 Checking dependencies...")
     required = ["mcp", "python_pptx", "lxml"]
     missing = []
-    
+
     for dep in required:
         try:
             if dep == "python_pptx":
@@ -181,7 +173,7 @@ def test_dependencies():
         except ImportError:
             print(f"   ❌ {dep} (missing)")
             missing.append(dep)
-    
+
     if missing:
         print(f"\n⚠️  Missing dependencies: {', '.join(missing)}")
         print("   Run: pip3 install -r requirements.txt")
@@ -194,20 +186,20 @@ async def main():
     print("\n" + "=" * 60)
     print("PPTX MCP Server Test Suite")
     print("=" * 60)
-    
+
     # Test dependencies first
     if not test_dependencies():
         print("\n❌ Dependency check failed. Please install missing packages.")
         sys.exit(1)
-    
+
     # Test import
     if not test_server_import():
         print("\n❌ Server import failed.")
         sys.exit(1)
-    
+
     # Test MCP communication
     success = await test_mcp_server()
-    
+
     print("\n" + "=" * 60)
     if success:
         print("✅ All tests passed! Server is working correctly.")
@@ -225,15 +217,15 @@ def quick_test():
     print("\n" + "=" * 60)
     print("Quick Server Test")
     print("=" * 60)
-    
+
     # Test dependencies
     if not test_dependencies():
         return False
-    
+
     # Test import
     if not test_server_import():
         return False
-    
+
     # Test that tools are registered
     print("\n3️⃣  Testing tool registration...")
     try:
@@ -241,19 +233,19 @@ def quick_test():
         from mcp_server.tools.edit_tools import get_edit_tools
         from mcp_server.tools.slide_tools import get_slide_tools
         from mcp_server.tools.notes_tools import get_notes_tools
-        
+
         read_tools = get_read_tools()
         edit_tools = get_edit_tools()
         slide_tools = get_slide_tools()
         notes_tools = get_notes_tools()
-        
+
         total = len(read_tools) + len(edit_tools) + len(slide_tools) + len(notes_tools)
         print(f"   ✅ Registered {total} tools:")
         print(f"      • {len(read_tools)} read tools")
         print(f"      • {len(edit_tools)} edit tools")
         print(f"      • {len(slide_tools)} slide management tools")
         print(f"      • {len(notes_tools)} notes tools")
-        
+
         return True
     except Exception as e:
         print(f"   ❌ Tool registration failed: {e}")
@@ -262,7 +254,7 @@ def quick_test():
 
 if __name__ == "__main__":
     import sys
-    
+
     # Check if --quick flag is provided
     if "--quick" in sys.argv or "-q" in sys.argv:
         success = quick_test()
@@ -274,4 +266,3 @@ if __name__ == "__main__":
             sys.exit(1)
     else:
         asyncio.run(main())
-
