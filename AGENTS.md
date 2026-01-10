@@ -13,7 +13,7 @@ Automated PPTX processing via an MCP server, with a primary focus on **speaker n
 - **Keep empty notes empty**
 - Keep changes minimal and reversible; prefer batch + atomic updates for multi-slide edits
 
-## Vietnamese speaker notes style (when generating Vietnamese notes)
+## Vietnamese speaker notes style (when generating Vietnamese notes - the language can be changed as needed)
 
 - Address audience as **“anh/chị”** (not “bạn”, not “quý vị”)
 - Use **“chúng ta”** for shared actions/goals
