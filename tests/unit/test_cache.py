@@ -81,15 +81,19 @@ class TestLRUCache:
         cache = LRUCache(maxsize=10)
         cache.set("key1", "value1")
         cache.set("key2", "value2")
+        
+        # Clear should reset everything
         cache.clear()
         
-        assert cache.get("key1") is None
-        assert cache.get("key2") is None
-        
+        # Get stats before any operations to verify clear worked
         stats = cache.get_stats()
         assert stats["size"] == 0
         assert stats["hits"] == 0
         assert stats["misses"] == 0
+        
+        # These will be misses but that's expected
+        assert cache.get("key1") is None
+        assert cache.get("key2") is None
 
     def test_statistics_tracking(self):
         """Test statistics tracking."""
