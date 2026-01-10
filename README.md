@@ -2,6 +2,8 @@
 
 A Python project for building automated processes for PowerPoint speaker notes processing, translation, and management using Azure Foundry Models Response API.
 
+> **⚠️ IMPORTANT:** The `scripts/` directory is **DEPRECATED**. Please use the **MCP Server tools** for all PPTX operations. See [MIGRATION.md](MIGRATION.md) for migration instructions.
+
 ## Features
 
 - **MCP Server**: Model Context Protocol server for PPTX manipulation via AI agents
@@ -13,19 +15,25 @@ A Python project for building automated processes for PowerPoint speaker notes p
 - **Parallel Processing**: Process multiple slides concurrently for faster execution
 - **Status Tracking**: Automatic progress tracking with resume capability for interrupted runs
 - **Batch Processing**: Process entire presentations or specific slides
+- **Enhanced Security**: Input validation, workspace boundaries, file size limits
+- **Structured Logging**: Correlation IDs, JSON logging, performance monitoring
 
 ## Project Structure
 
 ```
 .
-├── mcp_server/                 # MCP server implementation
+├── mcp_server/                 # MCP server implementation (USE THIS)
 │   ├── core/                   # Core PPTX handling and safe editing
 │   ├── tools/                  # MCP tools (read, edit, slide, notes)
 │   ├── resources/              # MCP resources (PPTX file discovery)
+│   ├── utils/                  # Validators and utilities
+│   ├── config.py              # Configuration management
+│   ├── exceptions.py          # Custom exception hierarchy
+│   ├── logging_config.py      # Structured logging
 │   └── server.py              # Main MCP server entry point
-├── scripts/
-│   ├── pptx_notes.py          # Basic PPTX notes dump/apply utilities
-│   └── update_notes_format.py  # Automated processing with Azure Foundry Models
+├── scripts/                    # ⚠️ DEPRECATED - Use MCP tools instead
+│   ├── pptx_notes.py          # DEPRECATED: Use MCP notes_tools
+│   └── update_notes_format.py  # DEPRECATED: Use MCP process_notes_workflow
 ├── docker/                     # Docker configuration
 │   ├── Dockerfile             # Docker image definition
 │   └── docker-compose.yml     # Docker Compose configuration
@@ -35,6 +43,7 @@ A Python project for building automated processes for PowerPoint speaker notes p
 │   └── references/             # Reference materials
 ├── requirements.txt            # Python dependencies
 ├── mcp_config.json            # MCP server metadata
+├── MIGRATION.md                # Migration guide from scripts to MCP tools
 ├── AGENTS.md                   # Agent instructions and guidelines
 └── README.md                   # This file
 ```
@@ -360,9 +369,44 @@ For more details on available tools and their parameters, see:
 
 ## Usage
 
-### Basic Operations
+> **⚠️ DEPRECATION NOTICE:** The CLI scripts below are deprecated. Please use the **MCP Server tools** instead. See [MIGRATION.md](MIGRATION.md) for migration instructions.
 
-#### 1. Dump Notes to JSON
+### Using MCP Server (Recommended)
+
+The MCP server provides all PPTX manipulation capabilities through a unified, secure interface. See:
+- **[MCP_AGENT_INSTRUCTIONS.md](MCP_AGENT_INSTRUCTIONS.md)** - Comprehensive MCP server guide
+- **[AGENTS.md](AGENTS.md)** - Agent-specific workflows
+- **[MIGRATION.md](MIGRATION.md)** - Migration from scripts to MCP tools
+
+**Example MCP tool usage:**
+```python
+# Read notes from all slides
+await handle_read_notes_batch({
+    "pptx_path": "presentation.pptx",
+    "slide_range": "1-100"
+})
+
+# Update notes in batch
+await handle_update_notes_batch({
+    "pptx_path": "presentation.pptx",
+    "updates": [...],
+    "output_path": "presentation.pptx"
+})
+
+# Process notes workflow (translation + summarization)
+await handle_process_notes_workflow({
+    "pptx_path": "presentation.pptx",
+    "output_language": "vietnamese",
+    "include_translation": True,
+    "include_summary": True
+})
+```
+
+### Legacy CLI Scripts (Deprecated)
+
+> **⚠️ WARNING:** These scripts will show deprecation warnings and will be removed in a future version.
+
+#### 1. Dump Notes to JSON (DEPRECATED)
 
 Extract all speaker notes from a PPTX file:
 
@@ -370,9 +414,9 @@ Extract all speaker notes from a PPTX file:
 python3 scripts/pptx_notes.py dump "path/to/presentation.pptx"
 ```
 
-This creates a JSON file (e.g., `presentation.notes.json`) with all slide notes.
+**Use MCP tool instead:** `read_notes_batch`
 
-#### 2. Automated Processing with Azure Foundry Models
+#### 2. Automated Processing with Azure Foundry Models (DEPRECATED)
 
 Process notes with automatic translation and summarization:
 
@@ -382,6 +426,8 @@ python3 scripts/update_notes_format.py \
   --pptx "path/to/presentation.pptx" \
   --output-language vietnamese
 ```
+
+**Use MCP tool instead:** `process_notes_workflow`
 
 **Options**:
 - `--input`: Input JSON file (default: `src/deck/current-notes-dump.json`)

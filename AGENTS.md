@@ -42,18 +42,26 @@ Primary audience: Developers and content creators working with PowerPoint presen
 
 ## PPTX Speaker Notes
 
+> **⚠️ IMPORTANT:** Use **MCP Server tools** instead of direct script usage. The scripts are deprecated. See [MIGRATION.md](MIGRATION.md) for migration instructions.
+
 When the user asks to translate or edit speaker notes inside a `.pptx`:
 
-- Prefer using the existing CLI at `scripts/pptx_notes.py` for basic operations.
-- Use `scripts/update_notes_format.py` for automated processing with Azure Foundry Models Response API.
-- **Default engine:** use `--engine zip` (this edits only `notesSlide*.xml` parts inside the PPTX zip). This is the safest option and preserves slide structure, animations, and transitions.
-- Avoid using the `python-pptx` write path unless the user explicitly requests it (it rewrites the whole PPTX package and can cause unintended changes in complex decks).
+- **Preferred:** Use MCP server `notes_tools` for all operations:
+  - `read_notes` / `read_notes_batch` - Read speaker notes
+  - `update_notes` / `update_notes_batch` - Update speaker notes
+  - `process_notes_workflow` - Automated processing with Azure Foundry Models
+- **Benefits of MCP tools:**
+  - Safe editing that preserves slide structure, animations, and transitions
+  - Input validation and security checks
+  - Structured error handling
+  - Automatic logging and monitoring
+  - Type safety
 - Never change slide content or layout; only change speaker notes. If a slide note is empty, keep it empty.
 - Use Vietnamese speaker note style per this file: address as "anh/chị", use "chúng ta", keep sentences short and speakable.
 
-### Automated Note Processing with Azure Foundry Models
+### Automated Note Processing with MCP Tools
 
-The project includes `scripts/update_notes_format.py` which uses Azure Foundry Models Response API to automatically:
+The MCP server provides `process_notes_workflow` tool which uses Azure Foundry Models Response API to automatically:
 
 1. **Long Version Creation (`create_long_version`)**:
    - Detects the language of input notes (Vietnamese or English)
@@ -108,17 +116,24 @@ When translating or creating speaker notes for slides:
   - Both versions must be in conversational, speakable language
 
 4. **Workflow**:
-   - **Automated**: Use `scripts/update_notes_format.py` to process notes with Azure Foundry Models
-     - Use `--batch-size` to control parallel processing (default: 5)
-     - Use `--resume` to continue after interruptions
-     - Use `--dry-run` to test without API calls
-   - **Manual**: When updating notes manually: first dump current notes, then create a separate JSON file with long/short versions for the target slides
-   - Review the formatted notes before applying them back to the PPTX
-   - Apply using the zip engine to preserve animations
+   - **Automated (Recommended)**: Use MCP server `process_notes_workflow` tool
+     - Integrated security and validation
+     - Automatic parallel processing
+     - Structured error handling and logging
+     - See [MIGRATION.md](MIGRATION.md) for details
+   - **Legacy (Deprecated)**: `scripts/update_notes_format.py` - will be removed
+   - **Manual**: When updating notes manually via MCP tools:
+     - Use `read_notes_batch` to dump current notes
+     - Create JSON with long/short versions for target slides
+     - Use `update_notes_batch` to apply changes
+     - Review formatted notes before applying
+
 ### Commands
-- Always use `source .venv/bin/activate` to activate the virtual environment before running the commands.
-- Always use `python3` instead of `python` to run the commands.
-- Always use `pip3` instead of `pip` to install dependencies.
+
+> **⚠️ DEPRECATION WARNING:** Direct script usage is deprecated. Use MCP server tools instead. See [MIGRATION.md](MIGRATION.md).
+
+**MCP Server Setup (Recommended):**
+- Always use `source .venv/bin/activate` to activate the virtual environment
 - Setup (one-time):
 	- `python3 -m venv .venv`
 	- `source .venv/bin/activate`
@@ -127,23 +142,20 @@ When translating or creating speaker notes for slides:
 	  - `AZURE_AI_PROJECT_ENDPOINT`: Your Azure AI Project endpoint
 	  - `MODEL_DEPLOYMENT_NAME`: Your model deployment name
 
-- Dump notes to JSON:
+**Using MCP Tools (Recommended):**
+- See [MIGRATION.md](MIGRATION.md) for complete MCP tool usage examples
+- Use `read_notes_batch` instead of `pptx_notes.py dump`
+- Use `update_notes_batch` instead of `pptx_notes.py apply`
+- Use `process_notes_workflow` instead of `update_notes_format.py`
+
+**Legacy CLI Scripts (Deprecated - Will Show Warnings):**
+- Dump notes to JSON (use `read_notes_batch` instead):
 	- `python3 scripts/pptx_notes.py dump "path/to/deck.pptx"`
 
-- Process notes with Azure Foundry Models (automated translation and summarization):
+- Process notes (use `process_notes_workflow` instead):
 	- `python3 scripts/update_notes_format.py --input "path/to/notes.json" --pptx "path/to/deck.pptx" --output-language vietnamese`
-	- Options:
-	  - `--endpoint`: Azure AI Project endpoint (or use env var)
-	  - `--deployment-name`: Model deployment name (or use env var)
-	  - `--output-language`: Target language (vietnamese/english, default: vietnamese)
-	  - `--pptx`: PPTX file to update automatically after processing
-	  - `--in-place`: Update PPTX in-place (default: creates new file)
-	  - `--batch-size`: Number of slides to process in parallel (default: 5)
-	  - `--status-file`: Path to status tracking file (default: input_file.status.json)
-	  - `--resume`: Resume from status file, skipping already successful slides
-	  - `--dry-run`: Test processing without making API calls
 
-- Apply updates manually **in-place** (safe overwrite via temp file):
+- Apply updates manually (use `update_notes_batch` instead):
 	- `python3 scripts/pptx_notes.py apply "path/to/deck.pptx" "path/to/updates.json" --in-place --engine zip`
 
 ### Update format
