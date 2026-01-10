@@ -183,9 +183,7 @@ cython_debug/
 .cursor/plans/*
 
 # Large PPTX files and generated content
-src/deck/
-src/references/
-src/notes/
+decks/*
 test_data/
 
 
