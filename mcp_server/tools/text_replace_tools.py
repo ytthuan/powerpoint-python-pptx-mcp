@@ -22,7 +22,7 @@ def get_text_replace_tools() -> list[Tool]:
     return [
         Tool(
             name="replace_text",
-            description="Replace text in slide content or speaker notes with optional regex support. Supports dry-run mode to preview changes without modifying files.",
+            description="Replace text in slide content or speaker notes with optional regex support. Supports dry-run mode to preview changes without modifying files.",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -33,24 +33,24 @@ def get_text_replace_tools() -> list[Tool]:
                     "target": {
                         "type": "string",
                         "enum": ["slide_notes", "slide_content"],
-                        "description": "Target for replacement: 'slide_notes' (speaker notes) or 'slide_content' (text in slide shapes)",
+                        "description": "Target for replacement: 'slide_notes' (speaker notes) or 'slide_content' (text in slide shapes)",  # noqa: E501
                     },
                     "pattern": {
                         "type": "string",
-                        "description": "Text pattern to find. If use_regex is true, this is a regex pattern; otherwise, literal text.",
+                        "description": "Text pattern to find. If use_regex is true, this is a regex pattern; otherwise, literal text.",  # noqa: E501
                     },
                     "replacement": {
                         "type": "string",
-                        "description": "Replacement text. For regex mode, can use capture groups like \\1, \\2, etc.",
+                        "description": "Replacement text. For regex mode, can use capture groups like \\1, \\2, etc.",  # noqa: E501
                     },
                     "use_regex": {
                         "type": "boolean",
-                        "description": "Enable regex pattern matching (default: false for literal text matching)",
+                        "description": "Enable regex pattern matching (default: false for literal text matching)",  # noqa: E501
                         "default": False,
                     },
                     "regex_flags": {
                         "type": "array",
-                        "description": "Regex flags: 'IGNORECASE', 'MULTILINE', 'DOTALL' (only used if use_regex is true)",
+                        "description": "Regex flags: 'IGNORECASE', 'MULTILINE', 'DOTALL' (only used if use_regex is true)",  # noqa: E501
                         "items": {
                             "type": "string",
                             "enum": ["IGNORECASE", "MULTILINE", "DOTALL"],
@@ -58,31 +58,31 @@ def get_text_replace_tools() -> list[Tool]:
                     },
                     "slide_number": {
                         "type": "integer",
-                        "description": "Specific slide number (1-indexed). If omitted, applies to all slides.",
+                        "description": "Specific slide number (1-indexed). If omitted, applies to all slides.",  # noqa: E501
                         "minimum": 1,
                     },
                     "shape_id": {
                         "type": "integer",
-                        "description": "Specific shape ID (only for slide_content target). If omitted, applies to all shapes.",
+                        "description": "Specific shape ID (only for slide_content target). If omitted, applies to all shapes.",  # noqa: E501
                     },
                     "max_replacements": {
                         "type": "integer",
-                        "description": "Maximum number of replacements to make (0 or omitted = replace all)",
+                        "description": "Maximum number of replacements to make (0 or omitted = replace all)",  # noqa: E501
                         "minimum": 0,
                     },
                     "dry_run": {
                         "type": "boolean",
-                        "description": "Preview changes without modifying the file (default: false)",
+                        "description": "Preview changes without modifying the file (default: false)",  # noqa: E501
                         "default": False,
                     },
                     "in_place": {
                         "type": "boolean",
-                        "description": "Update file in-place. If false, creates a new file (default: true)",
+                        "description": "Update file in-place. If false, creates a new file (default: true)",  # noqa: E501
                         "default": True,
                     },
                     "output_path": {
                         "type": "string",
-                        "description": "Output path for the modified file (only used when in_place is false)",
+                        "description": "Output path for the modified file (only used when in_place is false)",  # noqa: E501
                     },
                 },
                 "required": ["pptx_path", "target", "pattern", "replacement"],
@@ -102,14 +102,12 @@ def _compile_regex(pattern: str, regex_flags: Optional[List[str]] = None) -> re.
                 flags |= re.MULTILINE
             elif flag_name == "DOTALL":
                 flags |= re.DOTALL
-    
+
     try:
         return re.compile(pattern, flags)
     except re.error as exc:
         # Provide a clear, user-facing error message for invalid regex patterns
-        raise ValueError(
-            f"Invalid regular expression pattern {pattern!r}: {exc}"
-        ) from exc
+        raise ValueError(f"Invalid regular expression pattern {pattern!r}: {exc}") from exc
 
 
 def _replace_in_text(
@@ -123,7 +121,7 @@ def _replace_in_text(
     """Replace text with pattern, return (new_text, replacement_count)."""
     if not text:
         return text, 0
-    
+
     count = 0
     if use_regex:
         regex = _compile_regex(pattern, regex_flags)
@@ -140,7 +138,7 @@ def _replace_in_text(
         else:
             count = text.count(pattern)
             new_text = text.replace(pattern, replacement)
-    
+
     return new_text, count
 
 
@@ -157,25 +155,25 @@ def _replace_in_notes(
     """Replace text in speaker notes."""
     handler = PPTXHandler(pptx_path)
     max_slides = handler.get_slide_count()
-    
+
     # Determine which slides to process
     if slide_number:
         validate_slide_number(slide_number, max_slides)
         slide_numbers = [slide_number]
     else:
         slide_numbers = list(range(1, max_slides + 1))
-    
+
     # Track changes
     changes: List[Dict[str, Any]] = []
     updates: List[Tuple[int, str]] = []
     total_replacements = 0
     slides_changed = 0
-    remaining_replacements = max_replacements if max_replacements > 0 else float('inf')
-    
+    remaining_replacements = max_replacements if max_replacements > 0 else float("inf")
+
     for slide_num in slide_numbers:
         if remaining_replacements <= 0:
             break
-            
+
         # Get current notes
         slide = handler.presentation.slides[slide_num - 1]
         notes_text = ""
@@ -184,30 +182,36 @@ def _replace_in_notes(
                 notes_text = slide.notes_slide.notes_text_frame.text
             except Exception:
                 continue
-        
+
         if not notes_text:
             continue
-        
+
         # Perform replacement
-        current_max = int(remaining_replacements) if remaining_replacements != float('inf') else 0
+        current_max = int(remaining_replacements) if remaining_replacements != float("inf") else 0
         new_notes, count = _replace_in_text(
             notes_text, pattern, replacement, use_regex, regex_flags, current_max
         )
-        
+
         if count > 0:
-            changes.append({
-                "slide_number": slide_num,
-                "replacements": count,
-                "original_preview": notes_text[:100] + "..." if len(notes_text) > 100 else notes_text,
-                "modified_preview": new_notes[:100] + "..." if len(new_notes) > 100 else new_notes,
-            })
+            changes.append(
+                {
+                    "slide_number": slide_num,
+                    "replacements": count,
+                    "original_preview": (
+                        notes_text[:100] + "..." if len(notes_text) > 100 else notes_text
+                    ),
+                    "modified_preview": (
+                        new_notes[:100] + "..." if len(new_notes) > 100 else new_notes
+                    ),
+                }
+            )
             updates.append((slide_num, new_notes))
             total_replacements += count
             slides_changed += 1
-            
+
             if max_replacements > 0:
                 remaining_replacements -= count
-    
+
     return {
         "updates": updates,
         "changes": changes,
@@ -231,69 +235,73 @@ def _replace_in_content(
     """Replace text in slide content shapes."""
     pres = Presentation(str(pptx_path))
     max_slides = len(pres.slides)
-    
+
     # Determine which slides to process
     if slide_number:
         validate_slide_number(slide_number, max_slides)
         slide_numbers = [slide_number]
     else:
         slide_numbers = list(range(1, max_slides + 1))
-    
+
     # Track changes
     changes: List[Dict[str, Any]] = []
     total_replacements = 0
     slides_changed = 0
-    remaining_replacements = max_replacements if max_replacements > 0 else float('inf')
-    
+    remaining_replacements = max_replacements if max_replacements > 0 else float("inf")
+
     for slide_num in slide_numbers:
         if remaining_replacements <= 0:
             break
-            
+
         slide = pres.slides[slide_num - 1]
         slide_changed = False
-        
+
         for shape in slide.shapes:
             if remaining_replacements <= 0:
                 break
-                
+
             # Filter by shape_id if specified
             if shape_id is not None and shape.shape_id != shape_id:
                 continue
-            
+
             # Only process shapes with text frames
             if not hasattr(shape, "text_frame") or not shape.text_frame:
                 continue
-            
+
             # Process each paragraph in the text frame
             for paragraph in shape.text_frame.paragraphs:
                 if remaining_replacements <= 0:
                     break
-                    
+
                 # Get the full paragraph text
                 para_text = "".join(run.text for run in paragraph.runs)
                 if not para_text:
                     continue
-                
+
                 # Perform replacement
-                current_max = int(remaining_replacements) if remaining_replacements != float('inf') else 0
+                current_max = (
+                    int(remaining_replacements) if remaining_replacements != float("inf") else 0
+                )
                 new_para_text, count = _replace_in_text(
                     para_text, pattern, replacement, use_regex, regex_flags, current_max
                 )
-                
+
                 if count > 0:
                     if not slide_changed:
                         slides_changed += 1
                         slide_changed = True
-                    
+
                     # Record change
-                    changes.append({
-                        "slide_number": slide_num,
-                        "shape_id": shape.shape_id,
-                        "replacements": count,
-                        "original_text": para_text,
-                        "modified_text": new_para_text,
-                    })
-                    
+                    changes.append(
+                        {
+                            "slide_number": slide_num,
+                            "shape_id": shape.shape_id,
+                            "replacements": count,
+                            "original_text": para_text,
+                            "modified_text": new_para_text,
+                        }
+                    )
+
                     # Update the paragraph text by clearing and setting the first run
                     # Note: This approach preserves the formatting of the first run but
                     # loses formatting from other runs if the paragraph had multiple runs
@@ -305,12 +313,12 @@ def _replace_in_content(
                             run.text = ""
                         if paragraph.runs:
                             paragraph.runs[0].text = new_para_text
-                    
+
                     total_replacements += count
-                    
+
                     if max_replacements > 0:
                         remaining_replacements -= count
-    
+
     return pres, {
         "changes": changes,
         "total_replacements": total_replacements,
@@ -335,14 +343,14 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
         dry_run = arguments.get("dry_run", False)
         in_place = arguments.get("in_place", True)
         output_path = arguments.get("output_path")
-        
+
         # Validate shape_id only for slide_content
         if shape_id is not None and target != "slide_content":
             return {
                 "success": False,
                 "error": "shape_id parameter is only valid for target='slide_content'",
             }
-        
+
         # Process based on target
         if target == "slide_notes":
             result = _replace_in_notes(
@@ -355,7 +363,7 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
                 max_replacements,
                 dry_run,
             )
-            
+
             if dry_run or result["total_replacements"] == 0:
                 return {
                     "success": True,
@@ -368,7 +376,7 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
                     "affected_slides": [c["slide_number"] for c in result["changes"]],
                     "changes": result["changes"],
                 }
-            
+
             # Apply changes
             if in_place:
                 update_notes_safe_in_place(pptx_path, result["updates"])
@@ -380,7 +388,7 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
                     output_path = pptx_path.with_name(pptx_path.stem + ".replaced.pptx")
                 update_notes_safe(pptx_path, result["updates"], output_path)
                 final_path = str(output_path)
-            
+
             return {
                 "success": True,
                 "target": target,
@@ -391,7 +399,7 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
                 "replacements_count": result["total_replacements"],
                 "affected_slides": [c["slide_number"] for c in result["changes"]],
             }
-        
+
         elif target == "slide_content":
             pres, result = _replace_in_content(
                 pptx_path,
@@ -404,7 +412,7 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
                 max_replacements,
                 dry_run,
             )
-            
+
             if dry_run or result["total_replacements"] == 0:
                 return {
                     "success": True,
@@ -414,15 +422,19 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
                     "slides_scanned": result["slides_scanned"],
                     "slides_changed": result["slides_changed"],
                     "replacements_count": result["total_replacements"],
-                    "affected_shapes": [(c["slide_number"], c["shape_id"]) for c in result["changes"]],
+                    "affected_shapes": [
+                        (c["slide_number"], c["shape_id"]) for c in result["changes"]
+                    ],
                     "changes": result["changes"],
                 }
-            
+
             # Save changes
             if in_place:
                 # Save to temp file first, then replace
                 tmp_dir = str(pptx_path.parent)
-                fd, tmp_path = tempfile.mkstemp(prefix=pptx_path.stem + ".", suffix=".tmp.pptx", dir=tmp_dir)
+                fd, tmp_path = tempfile.mkstemp(
+                    prefix=pptx_path.stem + ".", suffix=".tmp.pptx", dir=tmp_dir
+                )
                 os.close(fd)
                 tmp_file = Path(tmp_path)
                 try:
@@ -444,7 +456,7 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
                     output_path = pptx_path.with_name(pptx_path.stem + ".replaced.pptx")
                 pres.save(str(output_path))
                 final_path = str(output_path)
-            
+
             return {
                 "success": True,
                 "target": target,
@@ -455,13 +467,13 @@ async def handle_replace_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
                 "replacements_count": result["total_replacements"],
                 "affected_shapes": [(c["slide_number"], c["shape_id"]) for c in result["changes"]],
             }
-        
+
         else:
             return {
                 "success": False,
                 "error": f"Invalid target: {target}. Must be 'slide_notes' or 'slide_content'",
             }
-    
+
     except ValueError as e:
         # Validation errors, regex errors, etc.
         return {

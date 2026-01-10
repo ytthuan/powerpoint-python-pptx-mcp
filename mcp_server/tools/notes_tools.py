@@ -3,12 +3,12 @@
 import json
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from mcp.types import Tool
 
 from ..core.pptx_handler import PPTXHandler
-from ..core.safe_editor import update_notes_safe_in_place, _iter_updates
+from ..core.safe_editor import update_notes_safe_in_place
 from ..utils.validators import (
     validate_pptx_path,
     validate_slide_number,
@@ -33,7 +33,7 @@ def get_notes_tools() -> list[Tool]:
                     },
                     "slide_number": {
                         "type": "integer",
-                        "description": "Slide number (1-indexed). If not provided, returns all slides.",
+                        "description": "Slide number (1-indexed). If not provided, returns all slides.",  # noqa: E501
                         "minimum": 1,
                     },
                 },
@@ -42,7 +42,7 @@ def get_notes_tools() -> list[Tool]:
         ),
         Tool(
             name="read_notes_batch",
-            description="Read speaker notes from multiple slides at once for efficient batch processing",
+            description="Read speaker notes from multiple slides at once for efficient batch processing",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -60,7 +60,7 @@ def get_notes_tools() -> list[Tool]:
                     },
                     "slide_range": {
                         "type": "string",
-                        "description": "Slide range string like '1-10' (alternative to slide_numbers)",
+                        "description": "Slide range string like '1-10' (alternative to slide_numbers)",  # noqa: E501
                     },
                 },
                 "required": ["pptx_path"],
@@ -68,7 +68,7 @@ def get_notes_tools() -> list[Tool]:
         ),
         Tool(
             name="update_notes",
-            description="Update speaker notes for a slide using safe zip-based editing (preserves animations/transitions)",
+            description="Update speaker notes for a slide using safe zip-based editing (preserves animations/transitions)",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -100,7 +100,7 @@ def get_notes_tools() -> list[Tool]:
         ),
         Tool(
             name="update_notes_batch",
-            description="Update speaker notes for multiple slides atomically using safe zip-based editing. All updates succeed or all fail (atomic operation).",
+            description="Update speaker notes for multiple slides atomically using safe zip-based editing. All updates succeed or all fail (atomic operation).",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -134,7 +134,7 @@ def get_notes_tools() -> list[Tool]:
                     },
                     "output_path": {
                         "type": "string",
-                        "description": "Output PPTX path (optional, only used if in_place is false)",
+                        "description": "Output PPTX path (optional, only used if in_place is false)",  # noqa: E501
                     },
                 },
                 "required": ["pptx_path", "updates"],
@@ -142,7 +142,7 @@ def get_notes_tools() -> list[Tool]:
         ),
         Tool(
             name="format_notes_structure",
-            description="Format notes text into structured format (short/original template). Does NOT generate content, only formats structure.",
+            description="Format notes text into structured format (short/original template). Does NOT generate content, only formats structure.",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -166,7 +166,7 @@ def get_notes_tools() -> list[Tool]:
         ),
         Tool(
             name="process_notes_workflow",
-            description="Orchestrate complete notes processing workflow: validate, format, and apply pre-processed notes to multiple slides atomically. AI agent provides already-processed content.",
+            description="Orchestrate complete notes processing workflow: validate, format, and apply pre-processed notes to multiple slides atomically. AI agent provides already-processed content.",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -176,7 +176,7 @@ def get_notes_tools() -> list[Tool]:
                     },
                     "notes_data": {
                         "type": "array",
-                        "description": "Array of pre-processed notes with slide_number, short_text, and original_text",
+                        "description": "Array of pre-processed notes with slide_number, short_text, and original_text",  # noqa: E501
                         "items": {
                             "type": "object",
                             "properties": {
@@ -204,7 +204,7 @@ def get_notes_tools() -> list[Tool]:
                     },
                     "output_path": {
                         "type": "string",
-                        "description": "Output PPTX path (optional, only used if in_place is false)",
+                        "description": "Output PPTX path (optional, only used if in_place is false)",  # noqa: E501
                     },
                 },
                 "required": ["pptx_path", "notes_data"],
@@ -217,7 +217,7 @@ async def handle_read_notes(arguments: Dict[str, Any]) -> Dict[str, Any]:
     """Handle read_notes tool call."""
     pptx_path = arguments["pptx_path"]
     slide_number = arguments.get("slide_number")
-    
+
     handler = PPTXHandler(pptx_path)
     return handler.get_notes(slide_number)
 
@@ -229,14 +229,14 @@ async def handle_update_notes(arguments: Dict[str, Any]) -> Dict[str, Any]:
     notes_text = arguments["notes_text"]
     in_place = arguments.get("in_place", False)
     output_path = arguments.get("output_path")
-    
+
     # Validate slide number
     handler = PPTXHandler(pptx_path)
     validate_slide_number(slide_number, handler.get_slide_count())
-    
+
     # Prepare updates
     updates = [(slide_number, notes_text)]
-    
+
     if in_place:
         # Update in-place using safe zip-based editing
         update_notes_safe_in_place(pptx_path, updates)
@@ -252,7 +252,7 @@ async def handle_update_notes(arguments: Dict[str, Any]) -> Dict[str, Any]:
             output_path = pptx_path.with_name(pptx_path.stem + ".notes.pptx")
         else:
             output_path = Path(output_path)
-        
+
         # Create temporary JSON file for updates
         updates_json = {
             "slides": [
@@ -262,18 +262,19 @@ async def handle_update_notes(arguments: Dict[str, Any]) -> Dict[str, Any]:
                 }
             ]
         }
-        
+
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp_file:
             json.dump(updates_json, tmp_file, ensure_ascii=False)
             tmp_path = Path(tmp_file.name)
-        
+
         try:
             from ..core.safe_editor import update_notes_safe
+
             update_notes_safe(pptx_path, updates, output_path)
         finally:
             if tmp_path.exists():
                 tmp_path.unlink()
-        
+
         return {
             "success": True,
             "output_path": str(output_path),
@@ -287,12 +288,12 @@ async def handle_format_notes_structure(arguments: Dict[str, Any]) -> Dict[str, 
     short_text = arguments["short_text"]
     original_text = arguments["original_text"]
     format_type = arguments.get("format_type", "short_original")
-    
+
     if format_type == "short_original":
         formatted = f"- Short version:\n{short_text}\n\n- Original:\n{original_text}"
     else:  # simple
         formatted = f"{short_text}\n\n{original_text}"
-    
+
     return {
         "formatted_text": formatted,
         "format_type": format_type,
@@ -305,14 +306,16 @@ async def handle_read_notes_batch(arguments: Dict[str, Any]) -> Dict[str, Any]:
         pptx_path = validate_pptx_path(arguments["pptx_path"])
         slide_numbers = arguments.get("slide_numbers")
         slide_range = arguments.get("slide_range")
-        
+
         # Validate that only one parameter is provided
         if slide_range and slide_numbers:
-            raise ValueError("Cannot specify both slide_range and slide_numbers. Please provide only one.")
-        
+            raise ValueError(
+                "Cannot specify both slide_range and slide_numbers. Please provide only one."
+            )
+
         handler = PPTXHandler(pptx_path)
         max_slides = handler.get_slide_count()
-        
+
         # Determine which slides to read
         if slide_range:
             slide_numbers = parse_slide_range(slide_range)
@@ -323,7 +326,7 @@ async def handle_read_notes_batch(arguments: Dict[str, Any]) -> Dict[str, Any]:
         else:
             # If neither provided, return all slides
             slide_numbers = list(range(1, max_slides + 1))
-        
+
         # Read notes for all specified slides
         results = []
         for slide_num in slide_numbers:
@@ -336,12 +339,14 @@ async def handle_read_notes_batch(arguments: Dict[str, Any]) -> Dict[str, Any]:
                     # If there's an issue reading notes text frame for this slide,
                     # leave notes_text as empty string and continue
                     pass
-            
-            results.append({
-                "slide_number": slide_num,
-                "notes": notes_text,
-            })
-        
+
+            results.append(
+                {
+                    "slide_number": slide_num,
+                    "notes": notes_text,
+                }
+            )
+
         return {
             "success": True,
             "pptx_path": str(pptx_path),
@@ -371,15 +376,15 @@ async def handle_update_notes_batch(arguments: Dict[str, Any]) -> Dict[str, Any]
     updates = arguments["updates"]
     in_place = arguments.get("in_place", True)
     output_path = arguments.get("output_path")
-    
+
     # Validate updates
     handler = PPTXHandler(pptx_path)
     max_slides = handler.get_slide_count()
     validated_updates = validate_batch_updates(updates, max_slides)
-    
+
     # Prepare updates for safe_editor
     update_tuples = [(u["slide_number"], u["notes_text"]) for u in validated_updates]
-    
+
     try:
         if in_place:
             # Update in-place using safe zip-based editing
@@ -397,10 +402,11 @@ async def handle_update_notes_batch(arguments: Dict[str, Any]) -> Dict[str, Any]
                 output_path = pptx_path.with_name(pptx_path.stem + ".notes.pptx")
             else:
                 output_path = Path(output_path)
-            
+
             from ..core.safe_editor import update_notes_safe
+
             update_notes_safe(pptx_path, update_tuples, output_path)
-            
+
             return {
                 "success": True,
                 "output_path": str(output_path),
@@ -419,7 +425,7 @@ async def handle_update_notes_batch(arguments: Dict[str, Any]) -> Dict[str, Any]
 
 async def handle_process_notes_workflow(arguments: Dict[str, Any]) -> Dict[str, Any]:
     """Handle process_notes_workflow tool call.
-    
+
     This tool orchestrates the complete workflow:
     1. Validate all inputs
     2. Format notes using short_original structure
@@ -429,17 +435,17 @@ async def handle_process_notes_workflow(arguments: Dict[str, Any]) -> Dict[str, 
     notes_data = arguments["notes_data"]
     in_place = arguments.get("in_place", True)
     output_path = arguments.get("output_path")
-    
+
     # Validate notes_data structure
     if not notes_data or not isinstance(notes_data, list):
         return {
             "success": False,
             "error": "notes_data must be a non-empty list",
         }
-    
+
     handler = PPTXHandler(pptx_path)
     max_slides = handler.get_slide_count()
-    
+
     # Validate and format all notes
     formatted_updates = []
     for i, note_data in enumerate(notes_data):
@@ -448,23 +454,23 @@ async def handle_process_notes_workflow(arguments: Dict[str, Any]) -> Dict[str, 
                 "success": False,
                 "error": f"Item at index {i} must be a dictionary",
             }
-        
+
         slide_num = note_data.get("slide_number")
         short_text = note_data.get("short_text")
         original_text = note_data.get("original_text")
-        
+
         if not isinstance(slide_num, int):
             return {
                 "success": False,
                 "error": f"Item at index {i}: slide_number must be integer",
             }
-        
+
         if not isinstance(short_text, str) or not isinstance(original_text, str):
             return {
                 "success": False,
                 "error": f"Item at index {i}: short_text and original_text must be strings",
             }
-        
+
         # Validate slide number
         try:
             validate_slide_number(slide_num, max_slides)
@@ -473,28 +479,30 @@ async def handle_process_notes_workflow(arguments: Dict[str, Any]) -> Dict[str, 
                 "success": False,
                 "error": f"Item at index {i}: {str(e)}",
             }
-        
+
         # Format notes
         formatted_text = f"- Short version:\n{short_text}\n\n- Original:\n{original_text}"
-        
-        formatted_updates.append({
-            "slide_number": slide_num,
-            "notes_text": formatted_text,
-        })
-    
+
+        formatted_updates.append(
+            {
+                "slide_number": slide_num,
+                "notes_text": formatted_text,
+            }
+        )
+
     # Apply all updates atomically
-    result = await handle_update_notes_batch({
-        "pptx_path": str(pptx_path),
-        "updates": formatted_updates,
-        "in_place": in_place,
-        "output_path": output_path,
-    })
-    
+    result = await handle_update_notes_batch(
+        {
+            "pptx_path": str(pptx_path),
+            "updates": formatted_updates,
+            "in_place": in_place,
+            "output_path": output_path,
+        }
+    )
+
     # Enhance result with workflow details
     if result.get("success"):
         result["workflow"] = "process_notes_workflow"
         result["formatted_slides"] = len(formatted_updates)
-    
+
     return result
-
-

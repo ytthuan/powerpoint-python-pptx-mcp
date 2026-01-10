@@ -1,11 +1,11 @@
 """Tools for reading PPTX content."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from mcp.types import Tool
 
 from ..core.pptx_handler import PPTXHandler
-from ..core.image_extractor import extract_slide_images, extract_images_from_pptx
+from ..core.image_extractor import extract_slide_images
 
 
 def get_read_tools() -> list[Tool]:
@@ -13,7 +13,7 @@ def get_read_tools() -> list[Tool]:
     return [
         Tool(
             name="read_slide_content",
-            description="Read comprehensive content from a slide including text, shapes, images, and visibility status",
+            description="Read comprehensive content from a slide including text, shapes, images, and visibility status",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -23,12 +23,12 @@ def get_read_tools() -> list[Tool]:
                     },
                     "slide_number": {
                         "type": "integer",
-                        "description": "Slide number (1-indexed). If not provided, returns all slides.",
+                        "description": "Slide number (1-indexed). If not provided, returns all slides.",  # noqa: E501
                         "minimum": 1,
                     },
                     "include_hidden": {
                         "type": "boolean",
-                        "description": "Include hidden slides in results (default: true). Only applicable when slide_number is not specified.",
+                        "description": "Include hidden slides in results (default: true). Only applicable when slide_number is not specified.",  # noqa: E501
                         "default": True,
                     },
                 },
@@ -75,7 +75,7 @@ def get_read_tools() -> list[Tool]:
         ),
         Tool(
             name="read_presentation_info",
-            description="Get presentation metadata including slide count, dimensions, and visibility statistics",
+            description="Get presentation metadata including slide count, dimensions, and visibility statistics",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -89,7 +89,7 @@ def get_read_tools() -> list[Tool]:
         ),
         Tool(
             name="read_slides_metadata",
-            description="Get metadata for all slides including their visibility status (hidden/visible)",
+            description="Get metadata for all slides including their visibility status (hidden/visible)",  # noqa: E501
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -114,9 +114,9 @@ async def handle_read_slide_content(arguments: Dict[str, Any]) -> Dict[str, Any]
     pptx_path = arguments["pptx_path"]
     slide_number = arguments.get("slide_number")
     include_hidden = arguments.get("include_hidden", True)
-    
+
     handler = PPTXHandler(pptx_path)
-    
+
     if slide_number:
         return handler.get_slide_content(slide_number)
     else:
@@ -142,10 +142,10 @@ async def handle_read_slide_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
     """Handle read_slide_text tool call."""
     pptx_path = arguments["pptx_path"]
     slide_number = arguments["slide_number"]
-    
+
     handler = PPTXHandler(pptx_path)
     text = handler.get_slide_text(slide_number)
-    
+
     return {
         "slide_number": slide_number,
         "text": text,
@@ -156,9 +156,9 @@ async def handle_read_slide_images(arguments: Dict[str, Any]) -> Dict[str, Any]:
     """Handle read_slide_images tool call."""
     pptx_path = arguments["pptx_path"]
     slide_number = arguments["slide_number"]
-    
+
     images = extract_slide_images(pptx_path, slide_number)
-    
+
     return {
         "slide_number": slide_number,
         "images": images,
@@ -168,7 +168,7 @@ async def handle_read_slide_images(arguments: Dict[str, Any]) -> Dict[str, Any]:
 async def handle_read_presentation_info(arguments: Dict[str, Any]) -> Dict[str, Any]:
     """Handle read_presentation_info tool call."""
     pptx_path = arguments["pptx_path"]
-    
+
     handler = PPTXHandler(pptx_path)
     return handler.get_presentation_info()
 
@@ -177,13 +177,12 @@ async def handle_read_slides_metadata(arguments: Dict[str, Any]) -> Dict[str, An
     """Handle read_slides_metadata tool call."""
     pptx_path = arguments["pptx_path"]
     include_hidden = arguments.get("include_hidden", True)
-    
+
     handler = PPTXHandler(pptx_path)
     slides = handler.get_slides_metadata(include_hidden=include_hidden)
-    
+
     return {
         "pptx_path": pptx_path,
         "total_slides": handler.get_slide_count(),
         "slides": slides,
     }
-
