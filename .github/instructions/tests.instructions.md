@@ -21,6 +21,7 @@ import pytest
 from mcp_server.tools.example import handle_example
 
 @pytest.mark.unit  # or @pytest.mark.integration
+@pytest.mark.asyncio
 async def test_example_success(sample_pptx_path):
     """Test successful example operation.
     
@@ -43,6 +44,7 @@ async def test_example_success(sample_pptx_path):
     assert result["data"]["field"] == "expected_value"
 
 @pytest.mark.unit
+@pytest.mark.asyncio
 async def test_example_validation_error(sample_pptx_path):
     """Test error handling for invalid input.
     
@@ -167,6 +169,7 @@ Use parametrize for testing multiple inputs:
     (-1, False),   # Invalid
     (999, False),  # Out of range
 ])
+@pytest.mark.asyncio
 async def test_slide_validation(slide_number, expected):
     """Test slide number validation."""
     result = validate_slide_number(slide_number, max_slides=10)

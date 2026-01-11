@@ -64,9 +64,11 @@ async def handle_tool_name(arguments: Dict[str, Any]) -> Dict[str, Any]:
             "error_type": "validation_error"
         }
     except Exception as e:
+        # Log full exception details server-side for debugging
+        logger.error(f"Unexpected error in tool", exc_info=True)
         return {
             "success": False,
-            "error": f"Unexpected error: {str(e)}",
+            "error": "An unexpected internal error occurred. Please try again later.",
             "error_type": "internal_error"
         }
 ```

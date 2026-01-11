@@ -229,11 +229,12 @@ except Exception as e:
 Handle large files carefully:
 
 ```python
-# Use context managers
-with Presentation(pptx_path) as prs:
-    # Work with presentation
-    pass
-# Automatically closed
+# Manage Presentation lifetime explicitly (no context manager support)
+prs = Presentation(pptx_path)
+# Work with presentation
+pass
+# Release reference when done
+prs = None
 
 # Clear cache when needed
 self._cache.clear()

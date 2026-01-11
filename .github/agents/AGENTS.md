@@ -90,7 +90,7 @@ python3 -m pytest --cov=src/mcp_server --cov-report=html
 
 **Example code**:
 ```python
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from mcp_server.utils.validators import validate_file_path
 from mcp_server.exceptions import ValidationError
 
@@ -98,7 +98,7 @@ def process_slides(
     pptx_path: str,
     slide_numbers: List[int],
     options: Optional[Dict[str, str]] = None
-) -> Dict[str, any]:
+) -> Dict[str, Any]:
     """Process multiple slides in a PPTX file.
     
     Args:
@@ -157,7 +157,9 @@ python3 -m pytest tests/integration/ -v
 
 **Tool structure**:
 ```python
-async def handle_tool_name(arguments: Dict[str, any]) -> Dict[str, any]:
+from typing import Any, Dict
+
+async def handle_tool_name(arguments: Dict[str, Any]) -> Dict[str, Any]:
     """Handle MCP tool request.
     
     Args:
@@ -227,6 +229,7 @@ import pytest
 from mcp_server.tools.notes_tools import handle_read_notes
 
 @pytest.mark.unit
+@pytest.mark.asyncio
 async def test_read_notes_success(sample_pptx_path):
     """Test reading notes from a valid slide."""
     result = await handle_read_notes({
@@ -239,6 +242,7 @@ async def test_read_notes_success(sample_pptx_path):
     assert isinstance(result["notes"], str)
 
 @pytest.mark.unit
+@pytest.mark.asyncio
 async def test_read_notes_invalid_slide(sample_pptx_path):
     """Test error handling for invalid slide number."""
     with pytest.raises(ValidationError):
