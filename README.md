@@ -79,7 +79,7 @@ Add to Cursor Settings → Features → Model Context Protocol:
 {
   "mcpServers": {
     "pptx": {
-      "command": "python3",
+      "command": "/path/to/virtual.env/python3",
       "args": ["-m", "mcp_server.server"],
       "cwd": "/path/to/powerpoint-python-pptx-mcp",
       "env": {
