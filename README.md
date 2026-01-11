@@ -252,12 +252,17 @@ MCP_LOG_FILE=/var/log/mcp-server.log
 
 ## Documentation
 
-- **[`.github/skills/pptx-mcp-server/SKILL.md`](.github/skills/pptx-mcp-server/SKILL.md)** - Agent Skill for Copilot and other agents
+### For Users
+- **[AI Agent Guide](docs/guides/AI_AGENT_GUIDE.md)** - Complete guide for creating AI agents that use this MCP server (VS Code, Cursor, Claude Desktop)
 - **[AGENTS.md](AGENTS.md)** - Quick reference and workflow examples
+- **[`.github/skills/pptx-mcp-server/SKILL.md`](.github/skills/pptx-mcp-server/SKILL.md)** - Agent Skill for GitHub Copilot
+
+### For Developers
 - **[ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md)** - Technical architecture details
 - **[BATCH_OPERATIONS.md](docs/guides/BATCH_OPERATIONS.md)** - Batch processing documentation
 - **[SLIDE_VISIBILITY.md](docs/guides/SLIDE_VISIBILITY.md)** - Slide visibility feature guide
 - **[Migration Notes](docs/migration-notes.md)** - Repository layout changes
+- **[Copilot Instructions](.github/copilot-instructions.md)** - Instructions for developing this server with GitHub Copilot
 
 ## Testing
 

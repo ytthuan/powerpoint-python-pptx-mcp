@@ -4,11 +4,13 @@ This document explains the GitHub Copilot configuration set up for this reposito
 
 ## Overview
 
-The repository is configured with comprehensive Copilot instructions to guide AI agents in:
+The repository is configured with comprehensive Copilot instructions to guide AI agents in **developing the PPTX MCP server**:
 - Understanding the project context and architecture
 - Following coding conventions and best practices
-- Using specialized agent personas for different tasks
+- Using specialized agent personas for different development tasks
 - Applying path-specific guidelines for different parts of the codebase
+
+**Note**: These instructions are for **developing** the MCP server itself. If you're looking for instructions on **how to use** this MCP server in your AI agent, see [docs/guides/AI_AGENT_GUIDE.md](../docs/guides/AI_AGENT_GUIDE.md).
 
 ## Configuration Files
 
@@ -23,21 +25,21 @@ Provides global context and guidelines for the entire repository:
 - **Coding conventions**: Python style, architecture patterns, file organization
 - **Boundaries**: Security requirements, performance requirements, what NOT to do
 - **Development guidelines**: Adding features, fixing bugs, refactoring
-- **PPTX notes processing**: Detailed guidelines for speaker notes work
-  - Vietnamese style requirements (pronouns, tone, format)
-  - Required two-version structure (short/original)
-  - Recommended workflows with code examples
-  - Safety guidelines
+- **PPTX notes development**: Implementation guidelines for notes features
+  - Zip-based editing patterns
+  - Batch operations architecture
+  - Vietnamese text encoding support
+  - Safety and validation requirements
 
 ### 2. Agent Personas
 **File**: `.github/agents/AGENTS.md` (306 lines)
 
 Defines 5 specialized agent personas with specific expertise and boundaries:
 
-#### PPTX Notes Specialist
-- Expert in speaker notes processing and Vietnamese translation
-- Uses MCP server tools and batch operations
-- Boundaries: Never modify slide content, keep empty notes empty
+#### PPTX Notes Developer
+- Expert in developing notes processing features for the MCP server
+- Implements zip-based editing, batch operations, Vietnamese text support
+- Boundaries: Never use python-pptx write path, never skip validation
 
 #### Python Code Maintainer
 - Expert in Python 3.11+ with strict typing

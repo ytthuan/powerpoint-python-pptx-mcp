@@ -162,111 +162,106 @@ pre-commit run --all-files
 
 ## PPTX Speaker Notes Processing
 
-This is a **core feature** of the project. Follow these guidelines carefully when working with speaker notes.
+This is a **core feature** of the project that you will be developing and maintaining.
 
-### General principles
-- **Only modify speaker notes**, never slide content or layout (unless explicitly requested)
-- **Keep empty notes empty** (do not invent content for empty notes)
-- **Do NOT add new slides** unless user explicitly requests it
-- Use **MCP server tools** for all operations (e.g., `read_notes_batch`, `update_notes_batch`, `process_notes_workflow`)
-- Use **safe zip-based editing** (`--engine zip`) to preserve animations and transitions
-- Avoid `python-pptx` write path unless explicitly requested (rewrites entire PPTX)
-- Prefer **batch operations** for multi-slide work (atomic updates, 50-100x faster)
+### Development Focus
 
-### Vietnamese speaker notes style
+When working on speaker notes functionality:
 
-When generating Vietnamese speaker notes (default language - configurable):
+- **Server-side processing**: Implement tools for reading, validating, and updating notes
+- **Safe editing**: Use zip-based editing to preserve animations and transitions
+- **Batch operations**: Design for efficient multi-slide processing (50-100x faster than individual ops)
+- **Validation**: Ensure all inputs are validated and sanitized
+- **Error handling**: Provide clear error messages and handle edge cases
 
-- **Pronouns**: Address audience as **"anh/chị"** (never "bạn" or "quý vị")
-- **Collective**: Use **"chúng ta"** for shared actions/goals
-- **Tone**: Conversational, casual, suitable for live presentation
-- **Sentences**: Keep short and speakable
-- **Format**: Simple bullet points; avoid long paragraphs unless requested
-- **Facts**: Don't invent product claims or numbers. If citing stats, add "Nguồn:" line
-- **Brevity**: Default to comprehensive notes, but when user explicitly requests brevity (e.g., "ngắn gọn thôi"), reduce length significantly while preserving key points
+### Vietnamese Language Support
 
-### Slide transitions
-- **Do NOT** write transition phrases referencing the *next* slide (e.g., "phần tiếp theo...", "sang slide sau...") until user has provided next slide content
-- End current slide with neutral wrap-up that stands alone
+The server supports Vietnamese speaker notes formatting. When implementing features:
 
-### Required notes structure
+- **Text encoding**: Ensure proper Unicode/UTF-8 support for Vietnamese characters
+- **Validation**: Don't validate content based on English-only assumptions
+- **Testing**: Include Vietnamese text in test cases
+- **Documentation**: Document language-specific requirements
 
-**Always provide TWO versions** of each note:
+### Notes Format Structure
+
+The server supports a two-version notes format:
 
 ```
 - Short version:
-[Brief summary - 30-50% of original length, key points only]
+[Brief summary - 30-50% of original length]
 
 - Original:
-[Full translation/explanation with all details, examples, and explanations]
+[Full translation/explanation with all details]
 ```
 
-**Both versions must:**
-- Use "anh/chị" and "chúng ta" pronouns (for Vietnamese)
-- Be in conversational, speakable language
-- Follow the exact format above
+When implementing validation or formatting features:
+- Validate this structure exists when required
+- Don't modify the format structure itself
+- Support both structured and unstructured notes
 
-### Recommended workflows
+### Zip-based Editing Implementation
 
-#### Multi-slide notes (translation/summarization)
+For notes updates, prefer zip-based editing over python-pptx write path:
+
+**Why zip-based editing:**
+- Preserves animations and transitions
+- Faster for notes-only updates
+- Reduces risk of PPTX corruption
+- Only modifies necessary XML files
+
+**Implementation pattern:**
 ```python
-# 1. Read notes in batch
-notes = await read_notes_batch(pptx_path="deck.pptx", slide_range="1-20")
+import zipfile
+from lxml import etree
 
-# 2. Generate content (LLM side) - preserve empty notes
-notes_data = []
-for slide in notes["slides"]:
-    if not slide["notes"]:  # Keep empty notes empty
-        continue
-    translated = llm.translate(slide["notes"], target="vietnamese")
-    short = llm.summarize(translated, length_percent=40)
-    notes_data.append({
-        "slide_number": slide["slide_number"],
-        "short_text": short,
-        "original_text": translated,
-    })
-
-# 3. Apply atomically (server side)
-result = await process_notes_workflow(
-    pptx_path="deck.pptx",
-    notes_data=notes_data,
-    in_place=True  # Create backup before overwriting
-)
+def update_notes_zip(pptx_path: str, slide_number: int, notes_text: str):
+    """Update notes using zip-based editing."""
+    with zipfile.ZipFile(pptx_path, 'r') as zip_in:
+        notes_path = f'ppt/notesSlides/notesSlide{slide_number}.xml'
+        # Read, modify XML, write back
+        # Only touch notesSlide*.xml files
 ```
 
-#### Single slide notes update
+### Batch Operations Design
+
+Design tools to support batch operations:
+
+**Key principles:**
+- Accept lists/ranges of slides in single request
+- Process all operations before writing
+- Make updates atomic (all or nothing)
+- Provide progress tracking for large operations
+- Use efficient data structures (avoid O(n²) operations)
+
+**Example API:**
 ```python
-# Read single slide note
-note = await read_notes(pptx_path="deck.pptx", slide_number=5)
-
-# Update with formatted structure
-await update_notes(
-    pptx_path="deck.pptx",
-    slide_number=5,
-    notes_text="- Short version:\n...\n\n- Original:\n...",
-    engine="zip"  # Safe editing
-)
+async def handle_update_notes_batch(arguments: Dict[str, Any]) -> Dict[str, Any]:
+    """Update multiple slides in single atomic operation."""
+    # 1. Validate all inputs first
+    # 2. Process all slides
+    # 3. Apply all changes atomically
+    # 4. Return success/failure for entire batch
 ```
 
-### Notes update format
+### Safety and Validation
 
-When using JSON for updates:
-```json
-{
-  "slides": [
-    {
-      "slide": 63,
-      "notes": "- Short version:\n[brief content]\n\n- Original:\n[full content]"
-    }
-  ]
-}
-```
+When implementing notes features:
 
-### Safety guidelines
-- Create backup copy before overwriting PPTX (especially large decks)
-- Use `--dry-run` to test processing logic before running with API calls
-- Status tracking files allow safe interruption and resume
-- Always validate notes structure before applying updates
+- **Always validate slide numbers** against presentation bounds
+- **Check file exists** before operations
+- **Validate notes text length** to prevent memory issues
+- **Create backups** before in-place modifications
+- **Verify PPTX integrity** after modifications
+- **Handle encoding issues** gracefully
+
+### Performance Considerations
+
+- Use **LRU caching** for frequently accessed presentations
+- Implement **lazy loading** for presentation data
+- Monitor **memory usage** for large PPTX files
+- Profile **batch operations** vs individual operations
+- Optimize **XML parsing** for notes slides
 
 ## Common commands
 
@@ -291,6 +286,14 @@ docker compose -f docker/docker-compose.yml up --build
 - **[README.md](../README.md)** - Project overview and quick start
 - **[AGENTS.md](../AGENTS.md)** - Quick reference for AI agents
 - **[.github/skills/pptx-mcp-server/SKILL.md](.github/skills/pptx-mcp-server/SKILL.md)** - Agent Skill for Copilot
+- **[docs/guides/AI_AGENT_GUIDE.md](../docs/guides/AI_AGENT_GUIDE.md)** - Complete guide for creating AI agents that use this MCP server
 - **[ARCHITECTURE.md](../docs/architecture/ARCHITECTURE.md)** - Technical architecture details
 - **[BATCH_OPERATIONS.md](../docs/guides/BATCH_OPERATIONS.md)** - Batch processing documentation
 - **[SLIDE_VISIBILITY.md](../docs/guides/SLIDE_VISIBILITY.md)** - Slide visibility feature guide
+
+## For AI Agent Developers
+
+If you're looking for instructions on **how to use this MCP server** in your AI agent (VS Code Agent Custom Mode, Cursor, Claude Desktop, etc.), see:
+- **[docs/guides/AI_AGENT_GUIDE.md](../docs/guides/AI_AGENT_GUIDE.md)** - Complete guide with setup, configuration, and usage examples
+
+This file (copilot-instructions.md) is for **developing the MCP server itself**, not for using it.
