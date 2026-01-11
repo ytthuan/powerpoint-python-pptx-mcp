@@ -1,71 +1,116 @@
-# Agent Instructions - Quick Reference
+# Agent Quick Reference - Development
 
-> 📖 **Detailed, tool-accurate guidance lives in** `.github/skills/pptx-mcp-server/SKILL.md`
+> 📖 **For using this MCP server in your AI agent**, see [docs/guides/AI_AGENT_GUIDE.md](docs/guides/AI_AGENT_GUIDE.md)
+> 
+> 📖 **For GitHub Copilot Skills**, see [.github/skills/pptx-mcp-server/SKILL.md](.github/skills/pptx-mcp-server/SKILL.md)
 
 ## What this repo is for
 
 A **PowerPoint MCP Server** for automated PPTX processing, with a primary focus on **speaker notes** workflows (read/translate/summarize/update).
 
-## Non-negotiables (speaker notes work)
+This file provides quick reference for **developing** the server.
 
-- **Only modify speaker notes**, not slide content or layout, unless explicitly requested
-- **Do NOT add new slides** unless explicitly requested
-- **Keep empty notes empty**
-- Keep changes minimal and reversible; prefer batch + atomic updates for multi-slide edits
+## Development Focus
 
-## Vietnamese speaker notes style (when generating Vietnamese notes - the language can be changed as needed)
+When developing speaker notes features:
 
-- Address audience as **“anh/chị”** (not “bạn”, not “quý vị”)
-- Use **“chúng ta”** for shared actions/goals
-- Keep sentences short, speakable, conversational
+- **Server-side processing**: Implement tools for reading, validating, and updating notes
+- **Safe editing**: Use zip-based editing to preserve animations and transitions
+- **Batch operations**: Design for efficient multi-slide processing (50-100x faster)
+- **Validation**: Ensure all inputs are validated and sanitized
+- **Error handling**: Provide clear error messages and handle edge cases
 
-## Required notes structure
+## Implementation Guidelines
 
-Always provide **two versions**:
+### Notes Format Structure
+
+The server supports a two-version notes format:
 
 ```
 - Short version:
 [Brief summary - 30-50% of original length]
 
 - Original:
-[Full content with all details and explanations]
+[Full translation/explanation with all details]
 ```
 
-## Recommended workflow (multi-slide notes)
+When implementing validation or formatting features:
+- Validate this structure exists when required
+- Don't modify the format structure itself
+- Support both structured and unstructured notes
 
-Use **one batch read + one atomic write**:
+### Zip-based Editing Pattern
+
+For notes updates, prefer zip-based editing over python-pptx write path:
 
 ```python
-# 1) Read notes in batch
-notes = await read_notes_batch(pptx_path="deck.pptx", slide_range="1-20")
+import zipfile
+from lxml import etree
 
-# 2) Generate content (LLM side) and preserve empty notes
-notes_data = []
-for slide in notes["slides"]:
-    if not slide["notes"]:
-        continue
-    translated = llm.translate(slide["notes"], target="vietnamese")
-    short = llm.summarize(translated, length_percent=40)
-    notes_data.append(
-        {
-            "slide_number": slide["slide_number"],
-            "short_text": short,
-            "original_text": translated,
-        }
-    )
-
-# 3) Validate + format + apply atomically (server side)
-result = await process_notes_workflow(pptx_path="deck.pptx", notes_data=notes_data, in_place=True)
+def update_notes_zip(pptx_path: str, slide_number: int, notes_text: str):
+    """Update notes using zip-based editing."""
+    with zipfile.ZipFile(pptx_path, 'r') as zip_in:
+        notes_path = f'ppt/notesSlides/notesSlide{slide_number}.xml'
+        # Read, modify XML, write back
+        # Only touch notesSlide*.xml files
 ```
 
-## Tool choice (notes)
+### Batch Operations Design
 
-- **Multi-slide**: `read_notes_batch` → `process_notes_workflow` (preferred) or `update_notes_batch`
-- **Single-slide**: `read_notes` → `update_notes`
+Design tools to support batch operations:
+
+- Accept lists/ranges of slides in single request
+- Process all operations before writing
+- Make updates atomic (all or nothing)
+- Provide progress tracking for large operations
+
+### Vietnamese Text Support
+
+When implementing features with Vietnamese text:
+
+- **Text encoding**: Ensure proper Unicode/UTF-8 support
+- **Validation**: Don't validate content based on English-only assumptions
+- **Testing**: Include Vietnamese text in test cases
 
 ## Setup (local dev)
 
 ```bash
+# Create and activate virtual environment
+python3 -m venv .venv
 source .venv/bin/activate  # macOS/Linux
+# .venv\Scripts\activate  # Windows
+
+# Install dependencies
+pip3 install -r requirements.txt
+pip3 install -e .
+
+# Set workspace directory
 export MCP_WORKSPACE_DIRS=/path/to/presentations
 ```
+
+## Key Development Commands
+
+```bash
+# Run server
+python3 -m mcp_server.server
+
+# Run tests
+python3 -m pytest tests/ -v
+
+# Test specific features
+python3 -m pytest tests/integration/test_notes_tools.py -v
+python3 -m pytest tests/integration/test_batch_operations.py -v
+
+# Lint and format
+black src/ tests/ --line-length=100
+mypy src/ --strict --ignore-missing-imports
+```
+
+## Documentation
+
+- **[Copilot Instructions](.github/copilot-instructions.md)** - Complete development guidelines
+- **[Agent Personas](.github/agents/AGENTS.md)** - Specialized development agents
+- **[Path-specific Instructions](.github/instructions/)** - Code-level patterns
+- **[AI Agent Guide](docs/guides/AI_AGENT_GUIDE.md)** - How to **use** this server in your AI agent
+- **[Architecture](docs/architecture/ARCHITECTURE.md)** - Technical architecture
+- **[Batch Operations](docs/guides/BATCH_OPERATIONS.md)** - Batch processing guide
