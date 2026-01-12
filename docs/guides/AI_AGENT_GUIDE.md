@@ -19,6 +19,7 @@ The PPTX MCP Server provides AI agents with tools to:
 1. VS Code with GitHub Copilot extension, Cursor
 2. PPTX MCP Server running (see main README.md for installation)
 3. PowerPoint files accessible to the server
+4. (LLM tools) Export `AZURE_AI_PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME`; authentication uses `DefaultAzureCredential`. LLM tools are skipped if these are missing or credential initialization fails.
 
 ### Configuring the Agent
 ## Available MCP Tools
@@ -58,6 +59,26 @@ The server exposes these tools to your AI agent:
 - `update_notes_batch` - Update multiple slides atomically
 - `process_notes_workflow` - Complete workflow with validation and pre-processed content
 - `format_notes_structure` - Format notes into structured short/original format
+
+### LLM Tools (Azure AI Foundry)
+- `summarize_text_llm` - Summarize text with optional `style` (`concise`/`detailed`/`bullet_points`) and `max_words`.
+- `translate_text_llm` - Translate text to `target_lang` (optional `source_lang`, `preserve_terms`).
+- `generate_slide_content_llm` - Generate `title+bullets`, `speaker_notes`, or `json` from `slide_content` or `pptx_path` + `slide_number`.
+
+Example input:
+```json
+{
+  "name": "generate_slide_content_llm",
+  "arguments": {
+    "pptx_path": "deck.pptx",
+    "slide_number": 3,
+    "output_format": "speaker_notes",
+    "language": "Vietnamese"
+  }
+}
+```
+
+> LLM tools only appear when Foundry configuration is ready; check server logs if they are absent.
 
 ## PPTX Speaker Notes Processing Guidelines
 
@@ -171,11 +192,14 @@ You are an AI agent specialized in processing PowerPoint speaker notes using the
 
 ## Your Guidelines
 1. Always read notes in batch for multi-slide operations
-2. Keep empty notes empty (don't invent content)
-3. Use Vietnamese conversational style: "anh/chị", "chúng ta"
-4. Provide both short (30-50%) and original (100%) versions
-5. Never modify slide content, only speaker notes
-6. Use batch operations for efficiency
+2. Backup the original notes in a file called "original_notes.txt" store in `docs/backup` directory for further reference
+3. Keep empty notes empty (don't invent content)
+4. Use Vietnamese conversational style: "anh/chị", "chúng ta"
+5. Provide both short (30-50%) and original (100%) versions
+6. Never modify slide content, only speaker notes
+7. Use batch operations for efficiency
+8. Do not translate the technical terms.
+
 
 ## Your Workflow
 1. Use read_notes_batch to get all notes
@@ -198,6 +222,7 @@ docker logs pptx-mcp-container
 - Ensure MCP server is properly configured in VS Code settings
 - Restart VS Code after configuration changes
 - Check server logs for errors
+- For LLM tools, ensure `AZURE_AI_PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME` are set and credentials resolve via `DefaultAzureCredential`
 
 ### File Access Issues
 - Verify file paths are correct
@@ -229,10 +254,8 @@ For large presentations, use `process_notes_workflow` with a `status_file` param
 6. **Validate structure** before applying updates
 7. **Log operations** for debugging and audit trails
 
-
-## References
-
-- Main README: [README.md](../../README.md)
-- Architecture: [docs/architecture/ARCHITECTURE.md](../architecture/ARCHITECTURE.md)
-- Batch Operations: [docs/guides/BATCH_OPERATIONS.md](../guides/BATCH_OPERATIONS.md)
-- Agent Quick Reference: [AGENTS.md](../../AGENTS.md)
+### MUST
+- run on .venv environment with all the python commands
+```bash
+source .venv/bin/activate &&<your python command>
+```

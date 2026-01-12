@@ -3,6 +3,7 @@
 import asyncio
 import logging
 from pathlib import Path
+from typing import Optional
 
 import anyio
 from mcp.server import Server
@@ -52,6 +53,12 @@ from .tools.health_tools import (
     get_health_tools,
     handle_health_check,
 )
+from .tools.llm_tools import (
+    get_llm_tools,
+    handle_summarize_text,
+    handle_translate_text,
+    handle_generate_slide_content,
+)
 from .tools.registry import get_tool_registry
 from .middleware import (
     MiddlewarePipeline,
@@ -61,6 +68,7 @@ from .middleware import (
 )
 from .rate_limiter import RateLimiterMiddleware
 from .resources.pptx_resources import list_pptx_resources, get_pptx_resource
+from .llm.foundry_client import check_foundry_readiness
 
 # Configure logging
 logging.basicConfig(
@@ -72,11 +80,16 @@ logger = logging.getLogger(__name__)
 # Create MCP server
 server = Server("pptx-mcp-server")
 
+_foundry_ready: bool = False
+_foundry_reason: Optional[str] = None
+
 
 # Initialize tool registry and register all tools
 def register_all_tools():
     """Register all tool handlers with the tool registry."""
+    global _foundry_ready, _foundry_reason
     registry = get_tool_registry()
+    _foundry_ready, _foundry_reason = check_foundry_readiness()
 
     # Read tools
     registry.register_handler("read_slide_content", handle_read_slide_content)
@@ -114,6 +127,17 @@ def register_all_tools():
     # Health tools
     registry.register_handler("health_check", handle_health_check)
 
+    # LLM tools
+    if _foundry_ready:
+        registry.register_handler("summarize_text_llm", handle_summarize_text)
+        registry.register_handler("translate_text_llm", handle_translate_text)
+        registry.register_handler("generate_slide_content_llm", handle_generate_slide_content)
+    else:
+        logger.info(
+            "Skipping LLM tool registration because Foundry is not ready%s",
+            f": {_foundry_reason}" if _foundry_reason else "",
+        )
+
     logger.info(f"Registered {len(registry.get_registered_tools())} tools")
 
 
@@ -144,6 +168,8 @@ async def list_tools() -> list[Tool]:
     tools.extend(get_notes_tools())
     tools.extend(get_text_replace_tools())
     tools.extend(get_health_tools())
+    if _foundry_ready:
+        tools.extend(get_llm_tools())
     return tools
 
 
