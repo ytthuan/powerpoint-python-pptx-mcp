@@ -145,7 +145,9 @@ async def handle_summarize_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
     style: SummarizeStyle = _validate_summarize_style(arguments.get("style", "concise"))
     max_words = _validate_optional_positive_int(arguments.get("max_words"), "max_words")
     temperature = _validate_optional_temperature(arguments.get("temperature"))
-    max_output_tokens = _validate_optional_positive_int(arguments.get("max_output_tokens"), "max_output_tokens")
+    max_output_tokens = _validate_optional_positive_int(
+        arguments.get("max_output_tokens"), "max_output_tokens"
+    )
 
     prompt = get_summarize_prompt(text, style=style, max_words=max_words)
     summary = create_response(prompt, temperature=temperature, max_output_tokens=max_output_tokens)
@@ -160,7 +162,9 @@ async def handle_translate_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
     source_lang = _validate_language(source_lang_raw, field_name="source_lang", allow_empty=True)
     preserve_terms = arguments.get("preserve_terms")
     temperature = _validate_optional_temperature(arguments.get("temperature"))
-    max_output_tokens = _validate_optional_positive_int(arguments.get("max_output_tokens"), "max_output_tokens")
+    max_output_tokens = _validate_optional_positive_int(
+        arguments.get("max_output_tokens"), "max_output_tokens"
+    )
 
     if preserve_terms is not None:
         if not isinstance(preserve_terms, list):
@@ -175,7 +179,9 @@ async def handle_translate_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
         source_lang=source_lang,
         preserve_terms=preserve_terms,
     )
-    translation = create_response(prompt, temperature=temperature, max_output_tokens=max_output_tokens)
+    translation = create_response(
+        prompt, temperature=temperature, max_output_tokens=max_output_tokens
+    )
     return {"translation": translation}
 
 
@@ -187,7 +193,9 @@ async def handle_generate_slide_content(arguments: Dict[str, Any]) -> Dict[str, 
     output_format: OutputFormat = arguments.get("output_format", "title+bullets")
     language = arguments.get("language", "English")
     temperature = _validate_optional_temperature(arguments.get("temperature"))
-    max_output_tokens = _validate_optional_positive_int(arguments.get("max_output_tokens"), "max_output_tokens")
+    max_output_tokens = _validate_optional_positive_int(
+        arguments.get("max_output_tokens"), "max_output_tokens"
+    )
 
     if slide_content is None:
         if pptx_path is None or slide_number is None:

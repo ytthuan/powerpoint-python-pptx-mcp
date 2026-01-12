@@ -6,7 +6,10 @@ from typing import Literal, Optional
 
 
 def get_summarize_prompt(
-    text: str, *, style: Literal["concise", "detailed", "bullet_points"] = "concise", max_words: Optional[int] = None
+    text: str,
+    *,
+    style: Literal["concise", "detailed", "bullet_points"] = "concise",
+    max_words: Optional[int] = None,
 ) -> str:
     """Build a prompt for text summarization."""
     style_instructions = {
@@ -16,7 +19,9 @@ def get_summarize_prompt(
     }
 
     style_instruction = style_instructions.get(style, style_instructions["concise"])
-    word_limit = f" The summary should be approximately {max_words} words or less." if max_words else ""
+    word_limit = (
+        f" The summary should be approximately {max_words} words or less." if max_words else ""
+    )
 
     return (
         f"Summarize the following text.{word_limit}\n\n"
@@ -92,7 +97,9 @@ def get_slide_generate_prompt(
         ),
     }
 
-    format_instruction = format_instructions.get(output_format, format_instructions["title+bullets"])
+    format_instruction = format_instructions.get(
+        output_format, format_instructions["title+bullets"]
+    )
     language_tone = _get_language_tone_instructions(language, output_format)
     metadata_str = _format_slide_metadata(slide_content)
 
