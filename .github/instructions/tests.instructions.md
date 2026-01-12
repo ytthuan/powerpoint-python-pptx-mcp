@@ -214,3 +214,20 @@ pytest --pdb tests/unit/test_example.py
 - ❌ Tests that modify global state
 - ❌ Tests without assertions
 - ❌ Tests that test multiple unrelated things
+
+## Before committing changes
+
+**ALWAYS** run linting and formatting checks before committing:
+
+```bash
+# Format code
+black tests/ --line-length=100
+
+# Check linting
+flake8 tests/ --max-line-length=100 --extend-ignore=E203,W503
+
+# Verify formatting
+black --check --line-length 100 tests/
+```
+
+Ensure all checks pass before committing to avoid CI/CD pipeline failures.

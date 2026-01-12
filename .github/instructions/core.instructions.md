@@ -313,3 +313,20 @@ async def read_file_async(path: str) -> bytes:
     async with aiofiles.open(path, 'rb') as f:
         return await f.read()
 ```
+
+## Before committing changes
+
+**ALWAYS** run linting and formatting checks before committing:
+
+```bash
+# Format code
+black src/mcp_server/core/ --line-length=100
+
+# Check linting
+flake8 src/mcp_server/core/ --max-line-length=100 --extend-ignore=E203,W503
+
+# Verify formatting
+black --check --line-length 100 src/mcp_server/core/
+```
+
+Ensure all checks pass before committing to avoid CI/CD pipeline failures.

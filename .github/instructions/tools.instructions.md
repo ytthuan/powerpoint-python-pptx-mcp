@@ -126,3 +126,20 @@ logger.error("Tool failed", extra={
 - Test both success and error cases
 - Mock external dependencies
 - Use fixtures for common setup
+
+## Before committing changes
+
+**ALWAYS** run linting and formatting checks before committing:
+
+```bash
+# Format code
+black src/mcp_server/tools/ --line-length=100
+
+# Check linting
+flake8 src/mcp_server/tools/ --max-line-length=100 --extend-ignore=E203,W503
+
+# Verify formatting
+black --check --line-length 100 src/mcp_server/tools/
+```
+
+Ensure all checks pass before committing to avoid CI/CD pipeline failures.
