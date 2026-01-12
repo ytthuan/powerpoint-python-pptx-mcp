@@ -223,6 +223,9 @@ pytest --pdb tests/unit/test_example.py
 # Format code
 black tests/ --line-length=100
 
+# Check imports with isort
+isort tests/ --profile black --line-length 100
+
 # Check linting
 flake8 tests/ --max-line-length=100 --extend-ignore=E203,W503
 

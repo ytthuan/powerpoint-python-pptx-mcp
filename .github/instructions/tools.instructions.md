@@ -135,6 +135,9 @@ logger.error("Tool failed", extra={
 # Format code
 black src/mcp_server/tools/ --line-length=100
 
+# Check imports with isort
+isort src/mcp_server/tools/ --profile black --line-length 100
+
 # Check linting
 flake8 src/mcp_server/tools/ --max-line-length=100 --extend-ignore=E203,W503
 
