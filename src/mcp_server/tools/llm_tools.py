@@ -22,7 +22,10 @@ def get_llm_tools() -> list[Tool]:
     return [
         Tool(
             name="summarize_text_llm",
-            description="[Category: llm] [Tags: summarize, text, notes] Summarize text using Azure AI Foundry (Models Responses API)",
+            description=(
+                "[Category: llm] [Tags: summarize, text, notes] "
+                "Summarize text using Azure AI Foundry (Models Responses API)"
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -31,7 +34,10 @@ def get_llm_tools() -> list[Tool]:
                         "type": "string",
                         "enum": ["concise", "detailed", "bullet_points"],
                         "default": "concise",
-                        "description": "Summary style: concise (brief), detailed (richer detail), or bullet_points (bulleted list)",
+                        "description": (
+                            "Summary style: concise (brief), detailed (richer detail), "
+                            "or bullet_points (bulleted list)"
+                        ),
                     },
                     "max_words": {
                         "type": "integer",
@@ -55,7 +61,10 @@ def get_llm_tools() -> list[Tool]:
         ),
         Tool(
             name="translate_text_llm",
-            description="[Category: llm] [Tags: translate, text, language] Translate text using Azure AI Foundry (Models Responses API)",
+            description=(
+                "[Category: llm] [Tags: translate, text, language] "
+                "Translate text using Azure AI Foundry (Models Responses API)"
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -90,7 +99,11 @@ def get_llm_tools() -> list[Tool]:
         ),
         Tool(
             name="generate_slide_content_llm",
-            description="[Category: llm] [Tags: slides, generation, notes] Generate slide content (title/bullets, speaker notes, or JSON) using slide metadata and Azure AI Foundry",
+            description=(
+                "[Category: llm] [Tags: slides, generation, notes] "
+                "Generate slide content (title/bullets, speaker notes, or JSON) "
+                "using slide metadata and Azure AI Foundry"
+            ),
             inputSchema={
                 "type": "object",
                 "oneOf": [
@@ -109,7 +122,9 @@ def get_llm_tools() -> list[Tool]:
                     "slide_number": {
                         "type": "integer",
                         "minimum": 1,
-                        "description": "Slide number to read (used when slide_content not provided)",
+                        "description": (
+                            "Slide number to read (used when slide_content not provided)"
+                        ),
                     },
                     "output_format": {
                         "type": "string",
@@ -200,7 +215,8 @@ async def handle_generate_slide_content(arguments: Dict[str, Any]) -> Dict[str, 
     if slide_content is None:
         if pptx_path is None or slide_number is None:
             raise ValidationError(
-                "Either slide_content must be provided or both pptx_path and slide_number are required."
+                "Either slide_content must be provided or both pptx_path and "
+                "slide_number are required."
             )
         handler = PPTXHandler(pptx_path)
         slide_content = await handler.get_slide_content(slide_number)

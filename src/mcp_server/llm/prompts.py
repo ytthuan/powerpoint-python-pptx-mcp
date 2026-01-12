@@ -43,11 +43,16 @@ def get_translate_prompt(
     preserve_info = ""
     if preserve_terms:
         terms_list = ", ".join(f'"{term}"' for term in preserve_terms)
-        preserve_info = f"\n\nIMPORTANT: Preserve these terms exactly as written (do not translate): {terms_list}"
+        preserve_info = (
+            f"\n\nIMPORTANT: Preserve these terms exactly as written "
+            f"(do not translate): {terms_list}"
+        )
 
     return (
         f"Translate the following text{source_info} to {target_lang}.{preserve_info}\n\n"
-        "Maintain the original meaning, tone, and style. If the text contains technical terms or proper nouns, keep them in their original form unless they have a standard translation.\n\n"
+        "Maintain the original meaning, tone, and style. If the text contains technical "
+        "terms or proper nouns, keep them in their original form unless they have a "
+        "standard translation.\n\n"
         f"Text to translate:\n{text}\n\n"
         "Translation:"
     )
@@ -63,7 +68,8 @@ def get_slide_generate_prompt(
     format_instructions = {
         "title+bullets": (
             "Generate a slide title and bullet points based on the provided metadata. "
-            "Format: Title on first line, followed by bullet points (one per line, prefixed with '- ').\n\n"
+            "Format: Title on first line, followed by bullet points (one per line, "
+            "prefixed with '- ').\n\n"
             "TONE AND STYLE GUIDELINES:\n"
             "- Use clear, concise language suitable for presentation slides\n"
             "- Keep bullet points brief and scannable (one key idea per bullet)\n"
