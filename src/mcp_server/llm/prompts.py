@@ -6,7 +6,10 @@ from typing import Literal, Optional
 
 
 def get_summarize_prompt(
-    text: str, *, style: Literal["concise", "detailed", "bullet_points"] = "concise", max_words: Optional[int] = None
+    text: str,
+    *,
+    style: Literal["concise", "detailed", "bullet_points"] = "concise",
+    max_words: Optional[int] = None,
 ) -> str:
     """Build a prompt for text summarization."""
     style_instructions = {
@@ -16,7 +19,9 @@ def get_summarize_prompt(
     }
 
     style_instruction = style_instructions.get(style, style_instructions["concise"])
-    word_limit = f" The summary should be approximately {max_words} words or less." if max_words else ""
+    word_limit = (
+        f" The summary should be approximately {max_words} words or less." if max_words else ""
+    )
 
     return (
         f"Summarize the following text.{word_limit}\n\n"
@@ -38,11 +43,16 @@ def get_translate_prompt(
     preserve_info = ""
     if preserve_terms:
         terms_list = ", ".join(f'"{term}"' for term in preserve_terms)
-        preserve_info = f"\n\nIMPORTANT: Preserve these terms exactly as written (do not translate): {terms_list}"
+        preserve_info = (
+            f"\n\nIMPORTANT: Preserve these terms exactly as written "
+            f"(do not translate): {terms_list}"
+        )
 
     return (
         f"Translate the following text{source_info} to {target_lang}.{preserve_info}\n\n"
-        "Maintain the original meaning, tone, and style. If the text contains technical terms or proper nouns, keep them in their original form unless they have a standard translation.\n\n"
+        "Maintain the original meaning, tone, and style. If the text contains technical "
+        "terms or proper nouns, keep them in their original form unless they have a "
+        "standard translation.\n\n"
         f"Text to translate:\n{text}\n\n"
         "Translation:"
     )
@@ -58,7 +68,8 @@ def get_slide_generate_prompt(
     format_instructions = {
         "title+bullets": (
             "Generate a slide title and bullet points based on the provided metadata. "
-            "Format: Title on first line, followed by bullet points (one per line, prefixed with '- ').\n\n"
+            "Format: Title on first line, followed by bullet points (one per line, "
+            "prefixed with '- ').\n\n"
             "TONE AND STYLE GUIDELINES:\n"
             "- Use clear, concise language suitable for presentation slides\n"
             "- Keep bullet points brief and scannable (one key idea per bullet)\n"
@@ -92,7 +103,9 @@ def get_slide_generate_prompt(
         ),
     }
 
-    format_instruction = format_instructions.get(output_format, format_instructions["title+bullets"])
+    format_instruction = format_instructions.get(
+        output_format, format_instructions["title+bullets"]
+    )
     language_tone = _get_language_tone_instructions(language, output_format)
     metadata_str = _format_slide_metadata(slide_content)
 

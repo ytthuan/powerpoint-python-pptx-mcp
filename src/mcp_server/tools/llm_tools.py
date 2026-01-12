@@ -22,7 +22,10 @@ def get_llm_tools() -> list[Tool]:
     return [
         Tool(
             name="summarize_text_llm",
-            description="[Category: llm] [Tags: summarize, text, notes] Summarize text using Azure AI Foundry (Models Responses API)",
+            description=(
+                "[Category: llm] [Tags: summarize, text, notes] "
+                "Summarize text using Azure AI Foundry (Models Responses API)"
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -31,7 +34,10 @@ def get_llm_tools() -> list[Tool]:
                         "type": "string",
                         "enum": ["concise", "detailed", "bullet_points"],
                         "default": "concise",
-                        "description": "Summary style: concise (brief), detailed (richer detail), or bullet_points (bulleted list)",
+                        "description": (
+                            "Summary style: concise (brief), detailed (richer detail), "
+                            "or bullet_points (bulleted list)"
+                        ),
                     },
                     "max_words": {
                         "type": "integer",
@@ -55,7 +61,10 @@ def get_llm_tools() -> list[Tool]:
         ),
         Tool(
             name="translate_text_llm",
-            description="[Category: llm] [Tags: translate, text, language] Translate text using Azure AI Foundry (Models Responses API)",
+            description=(
+                "[Category: llm] [Tags: translate, text, language] "
+                "Translate text using Azure AI Foundry (Models Responses API)"
+            ),
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -90,7 +99,11 @@ def get_llm_tools() -> list[Tool]:
         ),
         Tool(
             name="generate_slide_content_llm",
-            description="[Category: llm] [Tags: slides, generation, notes] Generate slide content (title/bullets, speaker notes, or JSON) using slide metadata and Azure AI Foundry",
+            description=(
+                "[Category: llm] [Tags: slides, generation, notes] "
+                "Generate slide content (title/bullets, speaker notes, or JSON) "
+                "using slide metadata and Azure AI Foundry"
+            ),
             inputSchema={
                 "type": "object",
                 "oneOf": [
@@ -109,7 +122,9 @@ def get_llm_tools() -> list[Tool]:
                     "slide_number": {
                         "type": "integer",
                         "minimum": 1,
-                        "description": "Slide number to read (used when slide_content not provided)",
+                        "description": (
+                            "Slide number to read (used when slide_content not provided)"
+                        ),
                     },
                     "output_format": {
                         "type": "string",
@@ -145,7 +160,9 @@ async def handle_summarize_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
     style: SummarizeStyle = _validate_summarize_style(arguments.get("style", "concise"))
     max_words = _validate_optional_positive_int(arguments.get("max_words"), "max_words")
     temperature = _validate_optional_temperature(arguments.get("temperature"))
-    max_output_tokens = _validate_optional_positive_int(arguments.get("max_output_tokens"), "max_output_tokens")
+    max_output_tokens = _validate_optional_positive_int(
+        arguments.get("max_output_tokens"), "max_output_tokens"
+    )
 
     prompt = get_summarize_prompt(text, style=style, max_words=max_words)
     summary = create_response(prompt, temperature=temperature, max_output_tokens=max_output_tokens)
@@ -160,7 +177,9 @@ async def handle_translate_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
     source_lang = _validate_language(source_lang_raw, field_name="source_lang", allow_empty=True)
     preserve_terms = arguments.get("preserve_terms")
     temperature = _validate_optional_temperature(arguments.get("temperature"))
-    max_output_tokens = _validate_optional_positive_int(arguments.get("max_output_tokens"), "max_output_tokens")
+    max_output_tokens = _validate_optional_positive_int(
+        arguments.get("max_output_tokens"), "max_output_tokens"
+    )
 
     if preserve_terms is not None:
         if not isinstance(preserve_terms, list):
@@ -175,7 +194,9 @@ async def handle_translate_text(arguments: Dict[str, Any]) -> Dict[str, Any]:
         source_lang=source_lang,
         preserve_terms=preserve_terms,
     )
-    translation = create_response(prompt, temperature=temperature, max_output_tokens=max_output_tokens)
+    translation = create_response(
+        prompt, temperature=temperature, max_output_tokens=max_output_tokens
+    )
     return {"translation": translation}
 
 
@@ -187,12 +208,15 @@ async def handle_generate_slide_content(arguments: Dict[str, Any]) -> Dict[str, 
     output_format: OutputFormat = arguments.get("output_format", "title+bullets")
     language = arguments.get("language", "English")
     temperature = _validate_optional_temperature(arguments.get("temperature"))
-    max_output_tokens = _validate_optional_positive_int(arguments.get("max_output_tokens"), "max_output_tokens")
+    max_output_tokens = _validate_optional_positive_int(
+        arguments.get("max_output_tokens"), "max_output_tokens"
+    )
 
     if slide_content is None:
         if pptx_path is None or slide_number is None:
             raise ValidationError(
-                "Either slide_content must be provided or both pptx_path and slide_number are required."
+                "Either slide_content must be provided or both pptx_path and "
+                "slide_number are required."
             )
         handler = PPTXHandler(pptx_path)
         slide_content = await handler.get_slide_content(slide_number)

@@ -81,7 +81,11 @@ async def test_handle_generate_slide_content_with_pptx(monkeypatch):
         {"pptx_path": "demo.pptx", "slide_number": 1, "output_format": "speaker_notes"}
     )
 
-    assert result == {"content": "generated content", "format": "speaker_notes", "language": "English"}
+    assert result == {
+        "content": "generated content",
+        "format": "speaker_notes",
+        "language": "English",
+    }
     assert calls["pptx_path"] == "demo.pptx"
     assert calls["slide_number"] == 1
     assert calls["generate_kwargs"]["output_format"] == "speaker_notes"

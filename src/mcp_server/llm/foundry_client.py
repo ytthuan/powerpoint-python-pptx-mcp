@@ -123,7 +123,8 @@ def create_response(
         return _extract_response_text(response)
     except HttpResponseError as exc:
         raise FoundryClientError(
-            f"HTTP error from Foundry API: {exc}. Check endpoint, model deployment, and credentials."
+            f"HTTP error from Foundry API: {exc}. "
+            "Check endpoint, model deployment, and credentials."
         ) from exc
     except PPTXError:
         raise

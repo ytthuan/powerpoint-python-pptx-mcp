@@ -139,6 +139,31 @@ pre-commit run --all-files
 
 ## Development guidelines
 
+### Before committing code changes
+
+**ALWAYS** run the following checks before committing any code changes:
+
+```bash
+# 1. Format code with Black
+black src/ tests/ examples/ scripts/ --line-length=100
+
+# 2. Check imports with isort
+isort src/ tests/ examples/ scripts/ --profile black --line-length 100
+
+# 3. Run flake8 linting
+flake8 src tests examples scripts --max-line-length=100 --extend-ignore=E203,W503
+
+# 4. Verify Black formatting (should show no changes needed)
+black --check --line-length 100 src tests examples scripts
+```
+
+These checks ensure:
+- Code formatting is consistent with project standards
+- No linting errors are introduced
+- CI/CD pipeline will pass the lint and format checks
+
+**If any of these checks fail, fix the issues before committing.**
+
 ### When adding new features
 - Add comprehensive tests (unit + integration) before implementation
 - Update documentation in README.md and relevant docs/
@@ -152,10 +177,12 @@ pre-commit run --all-files
 - Add a regression test that reproduces the bug
 - Fix the minimal code required
 - Verify existing tests still pass
+- **Run all linting and formatting checks** (see "Before committing code changes" section)
 - Document the fix in commit message
 
 ### When refactoring
 - Ensure all tests pass before and after
+- **Run all linting and formatting checks** (see "Before committing code changes" section)
 - Keep changes incremental and focused
 - Update related documentation
 - Do not change public API without discussion
