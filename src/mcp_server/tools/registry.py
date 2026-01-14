@@ -5,7 +5,7 @@ the large if/elif chain with a cleaner, more maintainable approach.
 """
 
 import logging
-from typing import Any, Callable, Dict, Optional, Awaitable
+from typing import Any, Awaitable, Callable, Dict, Optional
 
 logger = logging.getLogger(__name__)
 

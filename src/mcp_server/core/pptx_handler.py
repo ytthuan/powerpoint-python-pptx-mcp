@@ -4,15 +4,15 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from pptx import Presentation
+from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx.shapes.base import BaseShape
 from pptx.shapes.group import GroupShape
 from pptx.shapes.picture import Picture
-from pptx.enum.shapes import MSO_SHAPE_TYPE
 
 from ..cache import PresentationCache
 from ..config import get_config
-from ..utils.validators import validate_pptx_path, validate_slide_number
 from ..utils.async_utils import run_in_thread
+from ..utils.validators import validate_pptx_path, validate_slide_number
 
 
 class PPTXHandler:

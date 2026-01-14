@@ -72,14 +72,21 @@ async def test_transcript_tool_listed_when_audio_ready(monkeypatch):
 @pytest.mark.asyncio
 async def test_handle_transcribe_embedded_video_audio_uses_mocks(tmp_path, monkeypatch):
     pptx_path = tmp_path / "demo.pptx"
-    slide_rels = """<?xml version="1.0" encoding="UTF-8"?>
+    slide_rels = (
+        """<?xml version="1.0" encoding="UTF-8"?>
     <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-        <Relationship Id="rId1" Type="http://schemas.microsoft.com/office/2007/relationships/media" Target="../media/video1.mp4"/>
+        <Relationship Id="rId1" """
+        """Type="http://schemas.microsoft.com/office/2007/relationships/media" """
+        """Target="../media/video1.mp4"/>
     </Relationships>
     """
+    )
 
     with zipfile.ZipFile(pptx_path, "w") as archive:
-        archive.writestr("ppt/slides/slide1.xml", "<p:sld xmlns:p='http://schemas.openxmlformats.org/presentationml/2006/main'></p:sld>")  # noqa: E501
+        archive.writestr(
+            "ppt/slides/slide1.xml",
+            "<p:sld xmlns:p='http://schemas.openxmlformats.org/presentationml/2006/main'></p:sld>",
+        )  # noqa: E501
         archive.writestr("ppt/slides/_rels/slide1.xml.rels", slide_rels)
         archive.writestr("ppt/media/video1.mp4", b"video-bytes")
 

@@ -66,6 +66,7 @@ def extract_image_as_base64(pptx_path: str | Path, image_path_in_zip: str) -> Op
 async def extract_slide_images(pptx_path: str | Path, slide_number: int) -> List[Dict[str, Any]]:
     """Extract images associated with a specific slide."""
     from pptx import Presentation
+
     from ..utils.async_utils import run_in_thread
 
     pptx_path = validate_pptx_path(pptx_path)

@@ -1,14 +1,15 @@
 """Tests for middleware pipeline."""
 
-import pytest
 import asyncio
 from unittest.mock import patch
 
+import pytest
+
 from mcp_server.middleware import (
     LoggingMiddleware,
-    ValidationMiddleware,
     MetricsMiddleware,
     MiddlewarePipeline,
+    ValidationMiddleware,
 )
 
 

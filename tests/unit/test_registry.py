@@ -1,11 +1,12 @@
 """Tests for tool registry."""
 
 import pytest
+
 from mcp_server.tools.registry import (
     ToolRegistry,
     get_tool_registry,
-    reset_tool_registry,
     register_tool,
+    reset_tool_registry,
 )
 
 

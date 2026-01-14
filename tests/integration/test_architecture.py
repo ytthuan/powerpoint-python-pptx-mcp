@@ -6,13 +6,14 @@ showing how all components work together.
 
 import asyncio
 import logging
+
 import pytest
 
 # Import from server to trigger tool registration
 import mcp_server.server  # noqa: F401
+from mcp_server.config import get_config
 from mcp_server.server import middleware_pipeline
 from mcp_server.tools.registry import get_tool_registry
-from mcp_server.config import get_config
 
 
 @pytest.mark.asyncio

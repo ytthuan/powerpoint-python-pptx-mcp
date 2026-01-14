@@ -1,5 +1,6 @@
-from pptx import Presentation
 from pathlib import Path
+
+from pptx import Presentation
 
 
 def generate_test_presentation():

@@ -183,8 +183,15 @@ class Config:
         config.azure_deployment_name = os.getenv("MODEL_DEPLOYMENT_NAME")
 
         # Azure audio transcription settings
-        config.audio_endpoint = os.getenv("AUDIO_ENDPOINT") or os.getenv("SPEECH_ENDPOINT") or os.getenv("ENDPOINT") or None
-        config.audio_deployment = os.getenv("AUDIO_DEPLOYMENT") or os.getenv("SPEECH_DEPLOYMENT") or None
+        config.audio_endpoint = (
+            os.getenv("AUDIO_ENDPOINT")
+            or os.getenv("SPEECH_ENDPOINT")
+            or os.getenv("ENDPOINT")
+            or None
+        )
+        config.audio_deployment = (
+            os.getenv("AUDIO_DEPLOYMENT") or os.getenv("SPEECH_DEPLOYMENT") or None
+        )
         config.audio_key = os.getenv("AUDIO_KEY") or os.getenv("SPEECH_KEY") or None
         config.audio_region = os.getenv("AUDIO_REGION") or os.getenv("SPEECH_REGION") or None
         config.audio_api_version = os.getenv("AUDIO_API_VERSION", config.audio_api_version)
@@ -237,17 +244,23 @@ class Config:
         if self.audio_endpoint or self.audio_deployment or self.audio_key or self.audio_region:
             # We need at least (endpoint OR region) AND key
             if not (self.audio_endpoint or self.audio_region) or not self.audio_key:
-                raise ValueError("Audio transcription configuration is incomplete. Need (SPEECH_ENDPOINT or SPEECH_REGION) and SPEECH_KEY.")
+                raise ValueError(
+                    "Audio transcription configuration is incomplete. "
+                    "Need (SPEECH_ENDPOINT or SPEECH_REGION) and SPEECH_KEY."
+                )
 
             if self.audio_endpoint:
                 parsed_endpoint = urlparse(self.audio_endpoint)
                 if parsed_endpoint.scheme != "https":
                     raise ValueError(
-                        "Invalid audio_endpoint. Expected a secure HTTPS URL (e.g., https://<resource>.openai.azure.com)"
+                        "Invalid audio_endpoint. Expected a secure HTTPS URL "
+                        "(e.g., https://<resource>.openai.azure.com)"
                     )
 
             if not self.audio_api_version:
-                raise ValueError("audio_api_version must be provided when audio transcription is set.")
+                raise ValueError(
+                    "audio_api_version must be provided when audio transcription is set."
+                )
 
         # Validate workspace directories exist (if enforcement is enabled)
         if self.security.enforce_workspace_boundary and self.security.workspace_dirs:

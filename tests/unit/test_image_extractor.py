@@ -1,9 +1,10 @@
 import base64
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+
 from src.mcp_server.core.image_extractor import (
-    extract_images_from_pptx,
     extract_image_as_base64,
+    extract_images_from_pptx,
     extract_slide_images,
 )
 

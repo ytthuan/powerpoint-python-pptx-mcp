@@ -1,6 +1,8 @@
-import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+
+import pytest
+
 from src.mcp_server.core.pptx_handler import PPTXHandler
 
 

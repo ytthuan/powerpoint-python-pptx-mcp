@@ -8,7 +8,6 @@ from typing import Dict, List, Tuple
 
 from lxml import etree
 
-
 # XML namespaces for PPTX
 _REL_NS = {
     "rel": "http://schemas.openxmlformats.org/package/2006/relationships",

@@ -5,15 +5,15 @@ import os
 import re
 import tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from mcp.types import Tool
 from pptx import Presentation
 
 from ..core.pptx_handler import PPTXHandler
 from ..core.safe_editor import update_notes_safe, update_notes_safe_in_place
-from ..utils.validators import validate_pptx_path, validate_slide_number
 from ..utils.async_utils import run_in_thread
+from ..utils.validators import validate_pptx_path, validate_slide_number
 
 logger = logging.getLogger(__name__)
 

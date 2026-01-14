@@ -1,26 +1,28 @@
-import pytest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from src.mcp_server.utils.validators import (
-    _is_path_safe,
-    _check_workspace_boundary,
-    _check_file_size,
-    validate_pptx_path,
-    validate_slide_number,
-    validate_position,
-    validate_size,
-    validate_text_input,
-    parse_slide_range,
-    validate_slide_numbers,
-    validate_batch_updates,
-)
+
+import pytest
+
 from src.mcp_server.exceptions import (
     FileTooLargeError,
+    InputTooLargeError,
     InvalidPathError,
     InvalidSlideNumberError,
     ValidationError,
     WorkspaceBoundaryError,
-    InputTooLargeError,
+)
+from src.mcp_server.utils.validators import (
+    _check_file_size,
+    _check_workspace_boundary,
+    _is_path_safe,
+    parse_slide_range,
+    validate_batch_updates,
+    validate_position,
+    validate_pptx_path,
+    validate_size,
+    validate_slide_number,
+    validate_slide_numbers,
+    validate_text_input,
 )
 
 

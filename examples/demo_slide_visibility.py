@@ -7,9 +7,11 @@ This script demonstrates:
 4. Setting slide visibility
 """
 
-import tempfile
 import os
+import tempfile
+
 from pptx import Presentation
+
 from mcp_server.core.pptx_handler import PPTXHandler
 
 

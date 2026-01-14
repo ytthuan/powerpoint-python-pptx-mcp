@@ -19,7 +19,9 @@ DEFAULT_SEGMENT_SECONDS = 600  # 10 minutes @ 16kHz mono -> ~19.2MB per segment
 def _ensure_ffmpeg_available() -> None:
     """Ensure ffmpeg is available in PATH."""
     if shutil.which("ffmpeg") is None:
-        raise FileOperationError("ffmpeg is required for audio extraction but was not found in PATH.")
+        raise FileOperationError(
+            "ffmpeg is required for audio extraction but was not found in PATH."
+        )
 
 
 def _get_ffmpeg_hwaccel_flags() -> List[str]:
