@@ -407,3 +407,25 @@ def validate_batch_updates(updates: List[dict], max_slides: int) -> List[dict]:
         validated.append(update)
 
     return validated
+
+
+def validate_output_json_path(output_path: str | Path) -> Path:
+    """Validate output JSON path with workspace and extension checks."""
+    try:
+        path = Path(output_path) if isinstance(output_path, str) else output_path
+    except (TypeError, ValueError) as e:
+        raise InvalidPathError(str(output_path), "Invalid path format") from e
+
+    if not _is_path_safe(path):
+        raise PathTraversalError(str(path))
+
+    config = get_config()
+    if len(str(path)) > config.security.max_path_length:
+        raise InvalidPathError(str(path), f"Path too long (max: {config.security.max_path_length})")
+
+    if path.suffix.lower() != ".json":
+        raise InvalidPathError(str(path), "Output path must use .json extension")
+
+    resolved_path = path.resolve()
+    _check_workspace_boundary(resolved_path)
+    return resolved_path

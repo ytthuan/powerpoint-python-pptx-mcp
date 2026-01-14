@@ -19,6 +19,7 @@ RUN apt-get update \
         libwebp-dev \
         libxml2-dev \
         libxslt1-dev \
+        ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy project files

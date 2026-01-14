@@ -9,6 +9,7 @@ The PPTX MCP Server provides AI agents with tools to:
 - Manipulate slides (add, delete, duplicate, hide/show)
 - Update slide content (text, images, shapes)
 - Translate and summarize notes (especially Vietnamese ↔ English)
+- **Transcribe audio from embedded videos** (using Azure OpenAI / Whisper)
 - Perform batch operations on multiple slides
 - Safely edit PPTX files while preserving animations and transitions
 
@@ -19,7 +20,10 @@ The PPTX MCP Server provides AI agents with tools to:
 1. VS Code with GitHub Copilot extension, Cursor
 2. PPTX MCP Server running (see main README.md for installation)
 3. PowerPoint files accessible to the server
-4. (LLM tools) Export `AZURE_AI_PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME`; authentication uses `DefaultAzureCredential`. LLM tools are skipped if these are missing or credential initialization fails.
+4. **(LLM & Transcription tools)**:
+   - For Note LLM: Export `AZURE_AI_PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME`.
+   - For Transcription: Export `SPEECH_ENDPOINT` (or `SPEECH_REGION`), `SPEECH_KEY`, and `SPEECH_DEPLOYMENT`.
+   - Authentication uses `DefaultAzureCredential` for Foundry or API keys for Speech. Tools are skipped if configuration is missing.
 
 ### Configuring the Agent
 ## Available MCP Tools
@@ -64,6 +68,9 @@ The server exposes these tools to your AI agent:
 - `summarize_text_llm` - Summarize text with optional `style` (`concise`/`detailed`/`bullet_points`) and `max_words`.
 - `translate_text_llm` - Translate text to `target_lang` (optional `source_lang`, `preserve_terms`).
 - `generate_slide_content_llm` - Generate `title+bullets`, `speaker_notes`, or `json` from `slide_content` or `pptx_path` + `slide_number`.
+
+### Transcription Tools
+- `transcribe_embedded_video_audio` - Transcribe audio from embedded videos in a PPTX. Supports `slide_numbers` or `slide_range`. Outputs results to a JSON file.
 
 Example input:
 ```json
@@ -152,6 +159,17 @@ For updating individual slides:
 **Example Tool Call:**
 - Call `update_notes(pptx_path="deck.pptx", slide_number=5, notes_text="- Short version:\n...\n\n- Original:\n...")`
 
+### Embedded Video Transcription
+
+For processing presentations with video content:
+
+1. **Check for videos**: Use `transcribe_embedded_video_audio` with a `slide_range`. The tool will automatically discover videos.
+2. **Review Transcripts**: The tool writes a JSON file (e.g., `deck.pptx.transcripts.json`) containing text for each video segment found.
+3. **Incorporate into Notes**: Use the transcribed text to enrich or generate speaker notes for those slides.
+
+**Example Tool Call:**
+- Call `transcribe_embedded_video_audio(pptx_path="presentation.pptx", slide_range="1-5", language="en")`
+
 ## Notes Update Format
 
 When using JSON for batch updates:
@@ -186,6 +204,7 @@ You are an AI agent specialized in processing PowerPoint speaker notes using the
 - Read and analyze PPTX presentations
 - Manipulate slides (add, delete, duplicate, change layout)
 - Update slide content (text boxes, images)
+- **Transcribe audio from embedded videos**
 - Translate speaker notes to Vietnamese with proper tone
 - Create short/original note versions
 - Process multiple slides efficiently
@@ -222,7 +241,9 @@ docker logs pptx-mcp-container
 - Ensure MCP server is properly configured in VS Code settings
 - Restart VS Code after configuration changes
 - Check server logs for errors
-- For LLM tools, ensure `AZURE_AI_PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME` are set and credentials resolve via `DefaultAzureCredential`
+- For LLM tools, ensure `AZURE_AI_PROJECT_ENDPOINT` and `MODEL_DEPLOYMENT_NAME` are set.
+- For Transcription tools, ensure `SPEECH_KEY` and `SPEECH_ENDPOINT` (or `SPEECH_REGION`) are set.
+- Check that `ffmpeg` is installed and in your PATH for transcription tools to work.
 
 ### File Access Issues
 - Verify file paths are correct
@@ -250,7 +271,7 @@ For large presentations, use `process_notes_workflow` with a `status_file` param
 2. **Preserve empty notes** - don't fill them unless requested
 3. **Create backups** before overwriting large presentations
 4. **Use safe zip-based editing** for notes updates
-5. **Test with --dry-run** before running expensive LLM operations
+5. **Transcribe video content** when slides have embedded media to provide better context
 6. **Validate structure** before applying updates
 7. **Log operations** for debugging and audit trails
 
