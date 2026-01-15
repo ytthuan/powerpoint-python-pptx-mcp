@@ -192,3 +192,4 @@ test_data/
 .DS_Store
 logs
 .DS_Store
+test_output.txt
