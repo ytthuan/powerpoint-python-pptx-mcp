@@ -12,14 +12,14 @@ from typing import Any, List, Optional
 
 from ..config import get_config
 from ..exceptions import (
-    PPTXFileNotFoundError,
     FileTooLargeError,
+    InputTooLargeError,
     InvalidPathError,
     InvalidSlideNumberError,
     PathTraversalError,
+    PPTXFileNotFoundError,
     ValidationError,
     WorkspaceBoundaryError,
-    InputTooLargeError,
 )
 
 

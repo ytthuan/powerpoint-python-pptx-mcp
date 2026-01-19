@@ -4,8 +4,8 @@ from typing import Any, Dict
 
 from mcp.types import Tool
 
-from ..core.pptx_handler import PPTXHandler
 from ..core.image_extractor import extract_slide_images
+from ..core.pptx_handler import PPTXHandler
 
 
 def get_read_tools() -> list[Tool]:

@@ -10,7 +10,6 @@ from typing import Any, Callable, Dict, Optional, Type, TypeVar
 from .config import Config, get_config
 from .exceptions import PPTXError
 
-
 T = TypeVar("T")
 
 

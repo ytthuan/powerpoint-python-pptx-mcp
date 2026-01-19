@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import os
 import zipfile
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 from typing import Any, Dict, List
 from xml.etree import ElementTree
 

@@ -10,9 +10,9 @@ import asyncio
 from pathlib import Path
 
 from mcp_server.tools.notes_tools import (
+    handle_process_notes_workflow,
     handle_read_notes_batch,
     handle_update_notes_batch,
-    handle_process_notes_workflow,
 )
 
 

@@ -1,18 +1,17 @@
 """Integration tests for slide visibility MCP tools."""
 
-import tempfile
 import os
+import tempfile
+
+import pytest
 from pptx import Presentation
 
 from mcp_server.tools.read_tools import (
+    handle_read_presentation_info,
     handle_read_slide_content,
     handle_read_slides_metadata,
-    handle_read_presentation_info,
 )
 from mcp_server.tools.slide_tools import handle_set_slide_visibility
-
-
-import pytest
 
 
 @pytest.fixture

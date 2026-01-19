@@ -1,21 +1,21 @@
 """Unit tests for exception hierarchy module."""
 
 from mcp_server.exceptions import (
-    PPTXError,
-    ValidationError,
-    InvalidSlideNumberError,
-    InvalidPathError,
-    FileOperationError,
-    PPTXFileNotFoundError,
     FileAccessError,
+    FileOperationError,
     FileTooLargeError,
-    PresentationError,
-    SlideNotFoundError,
-    SecurityError,
-    PathTraversalError,
-    WorkspaceBoundaryError,
-    ResourceError,
+    InvalidPathError,
+    InvalidSlideNumberError,
     OperationTimeoutError,
+    PathTraversalError,
+    PPTXError,
+    PPTXFileNotFoundError,
+    PresentationError,
+    ResourceError,
+    SecurityError,
+    SlideNotFoundError,
+    ValidationError,
+    WorkspaceBoundaryError,
 )
 
 

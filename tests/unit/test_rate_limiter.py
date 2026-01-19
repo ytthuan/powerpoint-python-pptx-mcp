@@ -1,18 +1,19 @@
 """Tests for rate limiter."""
 
 import asyncio
-import pytest
 import time
 from unittest.mock import patch
 
+import pytest
+
+from mcp_server.config import Config
 from mcp_server.rate_limiter import (
-    TokenBucketRateLimiter,
-    RateLimitError,
     RateLimiterMiddleware,
+    RateLimitError,
+    TokenBucketRateLimiter,
     get_rate_limiter,
     reset_rate_limiter,
 )
-from mcp_server.config import Config
 
 
 @pytest.fixture(autouse=True)

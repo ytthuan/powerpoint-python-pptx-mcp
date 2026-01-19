@@ -1,15 +1,17 @@
-import pytest
 import zipfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+
+import pytest
 from lxml import etree
+
 from src.mcp_server.core.safe_editor import (
+    _XML_NS,
+    _iter_updates,
     _notes_part_for_slide,
     _set_notes_text,
-    _iter_updates,
     update_notes_safe,
     update_notes_safe_in_place,
-    _XML_NS,
 )
 
 

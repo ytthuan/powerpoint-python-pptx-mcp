@@ -9,14 +9,14 @@ from mcp.types import Tool
 
 from ..core.pptx_handler import PPTXHandler
 from ..core.safe_editor import update_notes_safe_in_place
+from ..utils.async_utils import run_in_thread
 from ..utils.validators import (
+    parse_slide_range,
+    validate_batch_updates,
     validate_pptx_path,
     validate_slide_number,
-    parse_slide_range,
     validate_slide_numbers,
-    validate_batch_updates,
 )
-from ..utils.async_utils import run_in_thread
 
 
 def get_notes_tools() -> list[Tool]:

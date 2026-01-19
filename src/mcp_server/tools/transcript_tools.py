@@ -13,7 +13,7 @@ from mcp.types import Tool
 
 from ..core.audio_extractor import extract_audio_from_video
 from ..core.video_extractor import discover_embedded_videos
-from ..exceptions import PPTXError, ValidationError, FileOperationError
+from ..exceptions import FileOperationError, PPTXError, ValidationError
 from ..llm.audio_transcribe_client import transcribe_audio_file
 from ..utils.async_utils import run_in_thread
 from ..utils.validators import (
@@ -33,7 +33,8 @@ def get_transcript_tools() -> list[Tool]:
             name="transcribe_embedded_video_audio",
             description=(
                 "[Category: transcript] [Tags: video, audio, transcription] "
-                "Transcribe audio from embedded videos within a PPTX file and write results to JSON."
+                "Transcribe audio from embedded videos within a PPTX file and "
+                "write results to JSON."
             ),
             inputSchema={
                 "type": "object",
@@ -47,7 +48,9 @@ def get_transcript_tools() -> list[Tool]:
                     },
                     "slide_range": {
                         "type": "string",
-                        "description": "Slide range (e.g., '1-5') used when slide_numbers is not provided",
+                        "description": (
+                            "Slide range (e.g., '1-5') used when slide_numbers is not provided"
+                        ),
                     },
                     "language": {
                         "type": "string",
@@ -59,7 +62,9 @@ def get_transcript_tools() -> list[Tool]:
                     },
                     "output_json_path": {
                         "type": "string",
-                        "description": "Optional output JSON path; defaults to <pptx_path>.transcripts.json",
+                        "description": (
+                            "Optional output JSON path; defaults to <pptx_path>.transcripts.json"
+                        ),
                     },
                     "include_raw_response": {
                         "type": "boolean",
@@ -114,7 +119,9 @@ async def handle_transcribe_embedded_video_audio(arguments: Dict[str, Any]) -> D
         requested_slides.extend(parse_slide_range(slide_range_arg))
 
     if not requested_slides:
-        raise ValidationError("Provide slide_numbers or slide_range to select slides for transcription")
+        raise ValidationError(
+            "Provide slide_numbers or slide_range to select slides for transcription"
+        )
 
     requested_slides = sorted(set(requested_slides))
     slide_count = _get_slide_count(pptx_path)
@@ -163,7 +170,10 @@ async def handle_transcribe_embedded_video_audio(arguments: Dict[str, Any]) -> D
                 }
 
                 try:
-                    video_temp_path = temp_dir_path / f"{slide_number}_{video_info.get('relationship_id')}_{video_info.get('filename')}"
+                    video_temp_path = (
+                        temp_dir_path / f"{slide_number}_{video_info.get('relationship_id')}_"
+                        f"{video_info.get('filename')}"
+                    )
                     video_temp_path.parent.mkdir(parents=True, exist_ok=True)
                     video_temp_path.write_bytes(zip_file.read(video_info["zip_path"]))
 
@@ -201,7 +211,8 @@ async def handle_transcribe_embedded_video_audio(arguments: Dict[str, Any]) -> D
                     errors.append(error_message)
                 except Exception as exc:
                     error_message = (
-                        f"Unexpected error processing embedded video {video_info.get('zip_path')}: {exc}"
+                        f"Unexpected error processing embedded video "
+                        f"{video_info.get('zip_path')}: {exc}"
                     )
                     video_result["error"] = error_message
                     errors.append(error_message)

@@ -9,14 +9,14 @@ from mcp.types import Tool
 from pptx import Presentation
 from pptx.util import Inches
 
-from ..utils.validators import (
-    validate_pptx_path,
-    validate_slide_number,
-    validate_position,
-    validate_size,
-    validate_image_path,
-)
 from ..utils.async_utils import run_in_thread
+from ..utils.validators import (
+    validate_image_path,
+    validate_position,
+    validate_pptx_path,
+    validate_size,
+    validate_slide_number,
+)
 
 
 def get_edit_tools() -> list[Tool]:

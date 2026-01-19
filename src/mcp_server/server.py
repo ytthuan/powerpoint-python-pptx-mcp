@@ -11,43 +11,24 @@ from mcp.server.stdio import stdio_server
 from mcp.types import Resource, Tool
 
 from .config import get_config
-from .tools.read_tools import (
-    get_read_tools,
-    handle_read_slide_content,
-    handle_read_slide_text,
-    handle_read_slide_images,
-    handle_read_presentation_info,
-    handle_read_slides_metadata,
+from .llm.audio_transcribe_client import check_audio_transcribe_readiness
+from .llm.foundry_client import check_foundry_readiness
+from .middleware import (
+    LoggingMiddleware,
+    MetricsMiddleware,
+    MiddlewarePipeline,
+    ValidationMiddleware,
 )
+from .rate_limiter import RateLimiterMiddleware
+from .resources.pptx_resources import get_pptx_resource, list_pptx_resources
 from .tools.edit_tools import (
     get_edit_tools,
-    handle_update_slide_text,
-    handle_replace_slide_image,
-    handle_add_text_box,
     handle_add_image,
+    handle_add_text_box,
     handle_replace_slide_content,
+    handle_replace_slide_image,
     handle_update_slide_content,
-)
-from .tools.slide_tools import (
-    get_slide_tools,
-    handle_add_slide,
-    handle_delete_slide,
-    handle_duplicate_slide,
-    handle_change_slide_layout,
-    handle_set_slide_visibility,
-)
-from .tools.notes_tools import (
-    get_notes_tools,
-    handle_read_notes,
-    handle_update_notes,
-    handle_format_notes_structure,
-    handle_read_notes_batch,
-    handle_update_notes_batch,
-    handle_process_notes_workflow,
-)
-from .tools.text_replace_tools import (
-    get_text_replace_tools,
-    handle_replace_text,
+    handle_update_slide_text,
 )
 from .tools.health_tools import (
     get_health_tools,
@@ -55,25 +36,44 @@ from .tools.health_tools import (
 )
 from .tools.llm_tools import (
     get_llm_tools,
+    handle_generate_slide_content,
     handle_summarize_text,
     handle_translate_text,
-    handle_generate_slide_content,
+)
+from .tools.notes_tools import (
+    get_notes_tools,
+    handle_format_notes_structure,
+    handle_process_notes_workflow,
+    handle_read_notes,
+    handle_read_notes_batch,
+    handle_update_notes,
+    handle_update_notes_batch,
+)
+from .tools.read_tools import (
+    get_read_tools,
+    handle_read_presentation_info,
+    handle_read_slide_content,
+    handle_read_slide_images,
+    handle_read_slide_text,
+    handle_read_slides_metadata,
+)
+from .tools.registry import get_tool_registry
+from .tools.slide_tools import (
+    get_slide_tools,
+    handle_add_slide,
+    handle_change_slide_layout,
+    handle_delete_slide,
+    handle_duplicate_slide,
+    handle_set_slide_visibility,
+)
+from .tools.text_replace_tools import (
+    get_text_replace_tools,
+    handle_replace_text,
 )
 from .tools.transcript_tools import (
     get_transcript_tools,
     handle_transcribe_embedded_video_audio,
 )
-from .tools.registry import get_tool_registry
-from .middleware import (
-    MiddlewarePipeline,
-    LoggingMiddleware,
-    ValidationMiddleware,
-    MetricsMiddleware,
-)
-from .rate_limiter import RateLimiterMiddleware
-from .resources.pptx_resources import list_pptx_resources, get_pptx_resource
-from .llm.foundry_client import check_foundry_readiness
-from .llm.audio_transcribe_client import check_audio_transcribe_readiness
 
 # Configure logging
 logging.basicConfig(

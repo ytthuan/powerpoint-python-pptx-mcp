@@ -230,10 +230,10 @@ def quick_test():
     # Test that tools are registered
     print("\n3️⃣  Testing tool registration...")
     try:
-        from mcp_server.tools.read_tools import get_read_tools
         from mcp_server.tools.edit_tools import get_edit_tools
-        from mcp_server.tools.slide_tools import get_slide_tools
         from mcp_server.tools.notes_tools import get_notes_tools
+        from mcp_server.tools.read_tools import get_read_tools
+        from mcp_server.tools.slide_tools import get_slide_tools
 
         read_tools = get_read_tools()
         edit_tools = get_edit_tools()

@@ -1,13 +1,12 @@
 """Tests for slide visibility features."""
 
-import tempfile
 import os
+import tempfile
+
+import pytest
 from pptx import Presentation
 
 from mcp_server.core.pptx_handler import PPTXHandler
-
-
-import pytest
 
 
 @pytest.fixture

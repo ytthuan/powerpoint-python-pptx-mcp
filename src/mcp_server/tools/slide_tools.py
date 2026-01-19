@@ -7,8 +7,8 @@ from mcp.types import Tool
 from pptx import Presentation
 
 from ..core.pptx_handler import PPTXHandler
-from ..utils.validators import validate_pptx_path, validate_slide_number
 from ..utils.async_utils import run_in_thread
+from ..utils.validators import validate_pptx_path, validate_slide_number
 
 
 def get_slide_tools() -> list[Tool]:

@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from src.mcp_server.exceptions import InputTooLargeError, ValidationError
 from src.mcp_server.tools import llm_tools

@@ -77,7 +77,7 @@ def get_audio_openai_client() -> AzureOpenAI:
 
     try:
         endpoint, _, key, api_version, region = _get_audio_settings()
-        
+
         # If we have a region but no endpoint, construct the standard Speech endpoint
         if not endpoint and region:
             endpoint = f"https://{region}.api.cognitive.microsoft.com"

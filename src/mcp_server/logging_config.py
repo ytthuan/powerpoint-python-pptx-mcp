@@ -19,7 +19,6 @@ from typing import Any, Optional
 
 from .config import get_config
 
-
 # Context variable for correlation ID
 correlation_id_var: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
     "correlation_id", default=None

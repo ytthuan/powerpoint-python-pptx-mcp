@@ -7,19 +7,17 @@ from pathlib import Path
 
 import pytest
 
+from mcp_server.exceptions import InvalidSlideNumberError
 from mcp_server.tools.notes_tools import (
+    handle_process_notes_workflow,
     handle_read_notes_batch,
     handle_update_notes_batch,
-    handle_process_notes_workflow,
 )
 from mcp_server.utils.validators import (
     parse_slide_range,
-    validate_slide_numbers,
     validate_batch_updates,
+    validate_slide_numbers,
 )
-
-
-from mcp_server.exceptions import InvalidSlideNumberError
 
 
 class TestSlideRangeParsing:

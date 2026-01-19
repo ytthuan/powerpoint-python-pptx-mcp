@@ -6,7 +6,7 @@ allowing for cross-cutting concerns like logging, validation, and metrics.
 
 import logging
 import time
-from typing import Any, Callable, Dict, Optional, Protocol, Awaitable
+from typing import Any, Awaitable, Callable, Dict, Optional, Protocol
 
 from .logging_config import get_logger, set_correlation_id
 from .metrics import MetricsCollector

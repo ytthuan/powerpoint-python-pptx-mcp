@@ -1,9 +1,11 @@
-import pytest
-import tempfile
 import os
+import tempfile
+
+import pytest
 from pptx import Presentation
-from src.mcp_server.tools.notes_tools import handle_process_notes_workflow
+
 from src.mcp_server.core.pptx_handler import PPTXHandler
+from src.mcp_server.tools.notes_tools import handle_process_notes_workflow
 
 
 @pytest.fixture
